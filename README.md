@@ -87,3 +87,4 @@ Assets en `assets/images/` (icono 1024, adaptive Android, variantes iOS light/da
 - `npm run android` / `npm run ios` / `npm run web`
 - `npm run build:preview:android` — APK de test
 - `npm run build:preview:ios` — IPA de test (Apple Developer)
+- `npm run build:web` — export estático a `dist/` (hostear en Vercel/Netlify/etc.)
