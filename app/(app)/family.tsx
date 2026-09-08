@@ -1,0 +1,170 @@
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { SurfaceCard } from '@/src/components/SurfaceCard';
+import {
+  useBudgetGoals,
+  useCreateFamily,
+  useFamilyContext,
+  useInviteMember,
+  useMembers,
+  useSaveBudgetGoals,
+} from '@/src/hooks/useFamilyData';
+import { useAuth } from '@/src/hooks/useAuth';
+import { signOut } from '@/src/lib/auth';
+import { isSupabaseConfigured } from '@/src/lib/supabase';
+import { budgetGoalsSchema, inviteSchema } from '@/src/schemas';
+
+export default function FamilyScreen() {
+  const { user } = useAuth();
+  const { familyId, families, refetch } = useFamilyContext();
+  const membersQuery = useMembers(familyId);
+  const goalsQuery = useBudgetGoals(familyId);
+  const saveGoals = useSaveBudgetGoals(familyId);
+  const invite = useInviteMember(familyId);
+  const createFamily = useCreateFamily();
+
+  const [living, setLiving] = useState('40');
+  const [comfort, setComfort] = useState('30');
+  const [savings, setSavings] = useState('30');
+  const [email, setEmail] = useState('');
+  const [familyName, setFamilyName] = useState('Familia Necoa');
+
+  useEffect(() => {
+    if (!goalsQuery.data) return;
+    setLiving(String(goalsQuery.data.living_pct));
+    setComfort(String(goalsQuery.data.comfort_pct));
+    setSavings(String(goalsQuery.data.savings_pct));
+  }, [goalsQuery.data]);
+
+  async function onSaveGoals() {
+    const parsed = budgetGoalsSchema.safeParse({
+      living_pct: living,
+      comfort_pct: comfort,
+      savings_pct: savings,
+    });
+    if (!parsed.success) {
+      Alert.alert('Objetivos', parsed.error.issues[0]?.message ?? 'Inválidos');
+      return;
+    }
+    try {
+      await saveGoals.mutateAsync(parsed.data);
+      Alert.alert('Listo', 'Objetivos actualizados');
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo guardar');
+    }
+  }
+
+  async function onInvite() {
+    const parsed = inviteSchema.safeParse({ email });
+    if (!parsed.success) {
+      Alert.alert('Invite', parsed.error.issues[0]?.message ?? 'Email inválido');
+      return;
+    }
+    try {
+      await invite.mutateAsync(parsed.data.email);
+      setEmail('');
+      Alert.alert('Invitación', 'Invite registrado. El mail se envía con la Edge Function.');
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo invitar');
+    }
+  }
+
+  async function onCreateFamily() {
+    try {
+      await createFamily.mutateAsync(familyName);
+      await refetch();
+      Alert.alert('Listo', 'Familia creada');
+    } catch (e) {
+      const message =
+        e && typeof e === 'object' && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : e instanceof Error
+            ? e.message
+            : 'No se pudo crear';
+      Alert.alert('Error', message);
+    }
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <View className="gap-4 px-5 pb-28 pt-4">
+        <Text className="text-2xl font-bold text-ink-900">Familia</Text>
+
+        {!familyId ? (
+          <SurfaceCard title="Crear familia" subtitle="Empezá un grupo para compartir gastos">
+            <TextInput
+              value={familyName}
+              onChangeText={setFamilyName}
+              className="mt-2 rounded-2xl border border-ink-200 px-4 py-3"
+              placeholderTextColor="#94A3B8"
+            />
+            <Pressable onPress={onCreateFamily} className="mt-3 items-center rounded-2xl bg-brand-700 py-3">
+              <Text className="font-medium text-white">Crear</Text>
+            </Pressable>
+          </SurfaceCard>
+        ) : (
+          <>
+            <SurfaceCard title={families[0]?.name ?? 'Tu familia'} subtitle={`${membersQuery.data?.length ?? 0} miembros`}>
+              {(membersQuery.data ?? []).map((m) => (
+                <Text key={m.id} className="mt-1 text-sm text-ink-700">
+                  {m.profile?.display_name ?? m.user_id.slice(0, 8)} · {m.role}
+                </Text>
+              ))}
+            </SurfaceCard>
+
+            <SurfaceCard title="Objetivos %" subtitle="Deben sumar 100 (default 40/30/30)">
+              <View className="mt-2 flex-row gap-2">
+                {[
+                  { label: 'Necesidades', value: living, set: setLiving },
+                  { label: 'Comodidades', value: comfort, set: setComfort },
+                  { label: 'Ahorro', value: savings, set: setSavings },
+                ].map((field) => (
+                  <View key={field.label} className="flex-1">
+                    <Text className="mb-1 text-xs text-ink-500">{field.label}</Text>
+                    <TextInput
+                      keyboardType="decimal-pad"
+                      value={field.value}
+                      onChangeText={field.set}
+                      className="rounded-xl border border-ink-200 px-3 py-2 text-center text-ink-900"
+                    />
+                  </View>
+                ))}
+              </View>
+              <Pressable onPress={onSaveGoals} className="mt-3 items-center rounded-2xl bg-brand-700 py-3">
+                <Text className="font-medium text-white">Guardar objetivos</Text>
+              </Pressable>
+            </SurfaceCard>
+
+            <SurfaceCard title="Invitar por email" subtitle="Sumá un miembro al grupo">
+              <TextInput
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor="#94A3B8"
+                className="mt-2 rounded-2xl border border-ink-200 px-4 py-3 text-ink-900"
+              />
+              <Pressable onPress={onInvite} className="mt-3 items-center rounded-2xl bg-ink-900 py-3">
+                <Text className="font-medium text-white">Enviar invite</Text>
+              </Pressable>
+            </SurfaceCard>
+          </>
+        )}
+
+        {isSupabaseConfigured && user ? (
+          <Pressable
+            onPress={() => signOut()}
+            className="items-center rounded-2xl border border-ink-200 bg-white py-3"
+          >
+            <Text className="text-ink-700">Cerrar sesión</Text>
+          </Pressable>
+        ) : (
+          <Text className="text-center text-xs text-ink-500">Modo demo (sin Supabase configurado)</Text>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+}

@@ -1,0 +1,175 @@
+import type { BudgetGoals, Family, FamilyMember, Tag, Transaction } from '@/src/types/domain';
+
+export const demoUser = {
+  id: '00000000-0000-4000-8000-000000000001',
+  email: 'vos@necoa.app',
+  display_name: 'Vos',
+};
+
+export const DEMO_FAMILY: Family = {
+  id: '00000000-0000-4000-8000-000000000010',
+  name: 'Familia Necoa',
+  created_by: demoUser.id,
+};
+
+export const DEMO_GOALS: BudgetGoals = {
+  id: '00000000-0000-4000-8000-000000000020',
+  family_id: DEMO_FAMILY.id,
+  living_pct: 40,
+  comfort_pct: 30,
+  savings_pct: 30,
+};
+
+export const DEMO_MEMBERS: FamilyMember[] = [
+  {
+    id: 'm1',
+    family_id: DEMO_FAMILY.id,
+    user_id: demoUser.id,
+    role: 'owner',
+    status: 'active',
+    profile: {
+      id: demoUser.id,
+      email: demoUser.email,
+      display_name: 'Vos',
+      avatar_url: null,
+    },
+  },
+  {
+    id: 'm2',
+    family_id: DEMO_FAMILY.id,
+    user_id: '00000000-0000-4000-8000-000000000002',
+    role: 'member',
+    status: 'active',
+    profile: {
+      id: '00000000-0000-4000-8000-000000000002',
+      email: 'pareja@necoa.app',
+      display_name: 'Pareja',
+      avatar_url: null,
+    },
+  },
+];
+
+export const DEMO_TAGS: Tag[] = [
+  { id: 't1', family_id: null, name: 'Comida', icon: 'utensils', color: '#0D9488', category: 'living', is_system: true },
+  { id: 't2', family_id: null, name: 'Restaurante', icon: 'utensils-crossed', color: '#D97706', category: 'comfort', is_system: true },
+  { id: 't3', family_id: null, name: 'Juegos', icon: 'gamepad-2', color: '#7C3AED', category: 'comfort', is_system: true },
+  { id: 't4', family_id: null, name: 'Auto', icon: 'car', color: '#2563EB', category: 'living', is_system: true },
+  { id: 't5', family_id: null, name: 'Luz', icon: 'zap', color: '#CA8A04', category: 'living', is_system: true },
+  { id: 't6', family_id: null, name: 'Gas', icon: 'flame', color: '#EA580C', category: 'living', is_system: true },
+  { id: 't7', family_id: null, name: 'Internet', icon: 'wifi', color: '#0284C7', category: 'living', is_system: true },
+  { id: 't8', family_id: null, name: 'Datos', icon: 'smartphone', color: '#6366F1', category: 'living', is_system: true },
+  { id: 't9', family_id: null, name: 'Otros', icon: 'more-horizontal', color: '#64748B', category: 'other', is_system: true },
+  { id: 't10', family_id: null, name: 'Alquiler', icon: 'home', color: '#0D9488', category: 'living', is_system: true },
+  { id: 't11', family_id: null, name: 'Salud', icon: 'heart-pulse', color: '#DC2626', category: 'living', is_system: true },
+  { id: 't12', family_id: null, name: 'Streaming', icon: 'tv', color: '#9333EA', category: 'comfort', is_system: true },
+];
+
+const today = new Date();
+const y = today.getFullYear();
+const m = String(today.getMonth() + 1).padStart(2, '0');
+
+export const DEMO_TRANSACTIONS: Transaction[] = [
+  {
+    id: 'tx1',
+    family_id: DEMO_FAMILY.id,
+    type: 'income',
+    amount: 900000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-01`,
+    paid_by: demoUser.id,
+    created_by: demoUser.id,
+    tag_id: null,
+    note: 'Sueldo',
+    installment_current: null,
+    installment_total: null,
+    category_override: null,
+    splits: [{ user_id: demoUser.id, share_pct: 100 }],
+  },
+  {
+    id: 'tx2',
+    family_id: DEMO_FAMILY.id,
+    type: 'income',
+    amount: 700000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-02`,
+    paid_by: '00000000-0000-4000-8000-000000000002',
+    created_by: '00000000-0000-4000-8000-000000000002',
+    tag_id: null,
+    note: 'Sueldo',
+    installment_current: null,
+    installment_total: null,
+    category_override: null,
+    splits: [{ user_id: '00000000-0000-4000-8000-000000000002', share_pct: 100 }],
+  },
+  {
+    id: 'tx3',
+    family_id: DEMO_FAMILY.id,
+    type: 'expense',
+    amount: 180000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-05`,
+    paid_by: demoUser.id,
+    created_by: demoUser.id,
+    tag_id: 't1',
+    note: 'Supermercado',
+    installment_current: null,
+    installment_total: null,
+    category_override: null,
+    tag: DEMO_TAGS[0],
+    splits: [
+      { user_id: demoUser.id, share_pct: 50 },
+      { user_id: '00000000-0000-4000-8000-000000000002', share_pct: 50 },
+    ],
+  },
+  {
+    id: 'tx4',
+    family_id: DEMO_FAMILY.id,
+    type: 'expense',
+    amount: 65000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-08`,
+    paid_by: '00000000-0000-4000-8000-000000000002',
+    created_by: demoUser.id,
+    tag_id: 't2',
+    note: 'Cena',
+    installment_current: null,
+    installment_total: null,
+    category_override: null,
+    tag: DEMO_TAGS[1],
+    splits: [{ user_id: '00000000-0000-4000-8000-000000000002', share_pct: 100 }],
+  },
+  {
+    id: 'tx5',
+    family_id: DEMO_FAMILY.id,
+    type: 'expense',
+    amount: 42000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-10`,
+    paid_by: demoUser.id,
+    created_by: demoUser.id,
+    tag_id: 't7',
+    note: null,
+    installment_current: 1,
+    installment_total: 1,
+    category_override: null,
+    tag: DEMO_TAGS[6],
+    splits: [{ user_id: demoUser.id, share_pct: 100 }],
+  },
+  {
+    id: 'tx6',
+    family_id: DEMO_FAMILY.id,
+    type: 'expense',
+    amount: 120000,
+    currency: 'ARS',
+    occurred_at: `${y}-${m}-12`,
+    paid_by: demoUser.id,
+    created_by: demoUser.id,
+    tag_id: 't3',
+    note: 'Consola',
+    installment_current: 2,
+    installment_total: 6,
+    category_override: null,
+    tag: DEMO_TAGS[2],
+    splits: [{ user_id: demoUser.id, share_pct: 100 }],
+  },
+];
