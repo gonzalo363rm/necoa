@@ -46,7 +46,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'Invite not found' }, 404);
     }
 
-    const deepLink = `necoa://invite?token=${invite.token}`;
+    // Solo HTTPS: Brevo/Gmail rompen o trackean mal necoa://
     const webLink = `${APP_WEB_URL}/invite?token=${invite.token}`;
     const familyName = (invite.families as { name?: string } | null)?.name ?? 'Grupo Familiar';
 
@@ -54,13 +54,21 @@ serve(async (req) => {
       to: email,
       subject: `Te invitaron a ${familyName} en Necoa`,
       html: `
-        <p>Te invitaron a compartir finanzas en <strong>${familyName}</strong> (Necoa).</p>
-        <p><a href="${deepLink}">Abrir en la app</a></p>
-        <p><a href="${webLink}">Abrir en el navegador</a></p>
+        <div style="font-family:sans-serif;line-height:1.5;color:#0f172a">
+          <p>Te invitaron a compartir finanzas en <strong>${familyName}</strong> (Necoa).</p>
+          <p>
+            <a href="${webLink}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:600">
+              Unirme al grupo
+            </a>
+          </p>
+          <p style="font-size:13px;color:#64748b">Si el botón no funciona, copiá y pegá este link en el navegador:</p>
+          <p style="font-size:12px;word-break:break-all"><a href="${webLink}">${webLink}</a></p>
+        </div>
       `,
+      text: `Te invitaron a ${familyName} en Necoa.\n\nUnirme: ${webLink}\n`,
     });
 
-    return jsonResponse({ ok: true, sent: true, deepLink, webLink });
+    return jsonResponse({ ok: true, sent: true, webLink });
   } catch (e) {
     return jsonResponse({ error: String(e) }, 500);
   }

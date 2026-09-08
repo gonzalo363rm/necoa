@@ -87,7 +87,7 @@ export default function FamilyScreen() {
             >
               {(membersQuery.data ?? []).map((m) => (
                 <Text key={m.id} className="mt-1 text-sm text-ink-700">
-                  {m.profile?.display_name ?? m.user_id.slice(0, 8)} · {m.role}
+                  {m.profile?.display_name ?? m.profile?.email ?? m.user_id.slice(0, 8)}
                 </Text>
               ))}
             </SurfaceCard>

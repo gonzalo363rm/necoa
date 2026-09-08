@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -11,28 +11,30 @@ export default function InviteScreen() {
   const { session, loading: authLoading } = useAuth();
   const setActiveFamilyId = useSessionStore((s) => s.setActiveFamilyId);
   const [message, setMessage] = useState('Procesando invitación…');
+  const ranForToken = useRef<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
 
+    const token =
+      (typeof params.token === 'string' && params.token) ||
+      (typeof params.invite === 'string' && params.invite) ||
+      null;
+
+    if (!token) {
+      setMessage('Invitación inválida');
+      const t = setTimeout(() => router.replace('/'), 1500);
+      return () => clearTimeout(t);
+    }
+
+    if (ranForToken.current === token) return;
+    ranForToken.current = token;
+
     let cancelled = false;
 
     async function run() {
-      const token =
-        (typeof params.token === 'string' && params.token) ||
-        (typeof params.invite === 'string' && params.invite) ||
-        null;
-
-      if (!token) {
-        setMessage('Invitación inválida');
-        setTimeout(() => {
-          if (!cancelled) router.replace('/');
-        }, 1500);
-        return;
-      }
-
       try {
-        const result = await handleInviteToken(token);
+        const result = await handleInviteToken(token!);
         if (cancelled) return;
 
         if (result.status === 'pending_login') {

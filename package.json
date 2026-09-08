@@ -58,7 +58,9 @@
     "build:preview:ios": "eas build --profile preview --platform ios",
     "build:preview": "eas build --profile preview --platform all",
     "build:preview:simulator": "eas build --profile preview-simulator --platform ios",
-    "build:production": "eas build --profile production --platform all"
+    "build:production": "eas build --profile production --platform all",
+    "build:production:android": "eas build --profile production --platform android",
+    "build:production:ios": "eas build --profile production --platform ios"
   },
   "private": true
 }

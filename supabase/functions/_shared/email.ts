@@ -6,11 +6,12 @@ export function isEmailConfigured() {
   return Boolean(BREVO_API_KEY);
 }
 
-/** Envía mail vía API transaccional de Brevo (mismo cupo que SMTP; apto para Edge Functions). */
+/** Envía mail vía API transaccional de Brevo. */
 export async function sendEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  text?: string;
 }) {
   if (!BREVO_API_KEY) {
     return { sent: false as const, reason: 'BREVO_API_KEY missing' };
@@ -28,6 +29,15 @@ export async function sendEmail(opts: {
       to: [{ email: opts.to }],
       subject: opts.subject,
       htmlContent: opts.html,
+      ...(opts.text ? { textContent: opts.text } : {}),
+      // Evita wraps sendibt2.com que rompen deep links / demoran el redirect.
+      headers: {
+        'X-Mailin-custom': 'necoa-invite',
+        'charset': 'utf-8',
+      },
+      params: {
+        // Algunos planes leen esto vía config de cuenta; el HTML usa solo HTTPS.
+      },
     }),
   });
 

@@ -65,8 +65,9 @@ export function useFamilyContext() {
 
       const { data: memberships, error } = await supabase
         .from('family_members')
-        .select('family_id, families(*)')
-        .eq('status', 'active');
+        .select('family_id, created_at, families(*)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       const families = (memberships ?? [])
         .map((m) => m.families as unknown as Family | Family[] | null)
