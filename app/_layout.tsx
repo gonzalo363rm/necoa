@@ -40,6 +40,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F8FAFC' } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="auth/callback" />
         <Stack.Screen name="(app)" />
         <Stack.Screen
           name="add-transaction"

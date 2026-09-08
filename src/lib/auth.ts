@@ -1,17 +1,18 @@
 import * as Linking from 'expo-linking';
 import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
-/** En Expo Go es exp://IP:PUERTO/--/auth/callback; en build nativo, necoa://auth/callback */
+/** En Expo Go: exp://…/auth/callback; nativo: necoa://auth/callback; web: https://…/auth/callback */
 export function getAuthRedirectUri() {
   return Linking.createURL('auth/callback');
 }
 
-async function createSessionFromUrl(url: string) {
+export async function createSessionFromUrl(url: string) {
   const { params, errorCode } = QueryParams.getQueryParams(url);
   if (errorCode) throw new Error(errorCode);
 
@@ -55,6 +56,12 @@ export async function signInWithGoogle() {
 
   if (error) throw error;
   if (!data.url) throw new Error('No se pudo iniciar Google Auth');
+
+  // En web el OAuth vuelve a /auth/callback como navegación completa
+  if (Platform.OS === 'web') {
+    window.location.assign(data.url);
+    return;
+  }
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success' || !result.url) {
