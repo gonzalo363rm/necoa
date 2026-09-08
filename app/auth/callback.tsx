@@ -5,13 +5,7 @@ import * as Linking from 'expo-linking';
 
 import { createSessionFromUrl } from '@/src/lib/auth';
 
-/**
- * Web (browser): intercambia el code y entra a la app.
- * Native: también puede abrir esta ruta vía deep link.
- *
- * Nota: en login desde Expo, iOS suele capturar https://…/auth/callback
- * antes de renderizar esta página en el browser sheet.
- */
+/** Completa el OAuth (web o deep link nativo). */
 export default function AuthCallbackScreen() {
   const [message, setMessage] = useState('Completando inicio de sesión…');
 
@@ -29,18 +23,10 @@ export default function AuthCallbackScreen() {
         if (!cancelled) router.replace('/');
       } catch (e) {
         if (!cancelled) {
-          const msg = e instanceof Error ? e.message : 'No se pudo completar el login';
-          // PKCE fallido en web suele ser porque el login lo inició la app móvil
-          if (msg.toLowerCase().includes('code') || msg.toLowerCase().includes('verifier')) {
-            setMessage(
-              'Este login se inició desde la app. Cerrá esta pestaña y volvé a Expo; la sesión debería completarse ahí.',
-            );
-          } else {
-            setMessage(msg);
-          }
+          setMessage(e instanceof Error ? e.message : 'No se pudo completar el login');
           setTimeout(() => {
             if (!cancelled) router.replace('/(auth)/login');
-          }, 3500);
+          }, 2500);
         }
       }
     }
