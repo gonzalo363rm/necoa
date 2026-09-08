@@ -19,12 +19,8 @@ export default function LoginScreen() {
     try {
       await signInWithGoogle();
       try {
-        const family = await consumePendingInvite();
-        if (family?.id) {
-          setActiveFamilyId(family.id);
-          router.replace('/(app)/family');
-          return;
-        }
+        const invited = await consumePendingInvite();
+        if (invited?.id) setActiveFamilyId(invited.id);
       } catch (inviteError) {
         setError(
           inviteError instanceof Error

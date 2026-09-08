@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
@@ -7,7 +7,6 @@ import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { WebShell } from '@/src/components/WebShell';
 import {
   useBudgetGoals,
-  useCreateFamily,
   useFamilyContext,
   useInviteMember,
   useMembers,
@@ -17,15 +16,12 @@ import { signOut } from '@/src/lib/auth';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { budgetGoalsSchema, inviteSchema } from '@/src/schemas';
 
-const DEFAULT_FAMILY_NAME = 'Grupo Familiar';
-
 export default function FamilyScreen() {
-  const { familyId, families, refetch } = useFamilyContext();
+  const { familyId, families, isLoading } = useFamilyContext();
   const membersQuery = useMembers(familyId);
   const goalsQuery = useBudgetGoals(familyId);
   const saveGoals = useSaveBudgetGoals(familyId);
   const invite = useInviteMember(familyId);
-  const createFamily = useCreateFamily();
 
   const [living, setLiving] = useState('40');
   const [comfort, setComfort] = useState('30');
@@ -72,37 +68,17 @@ export default function FamilyScreen() {
     }
   }
 
-  async function onCreateFamily() {
-    try {
-      await createFamily.mutateAsync(DEFAULT_FAMILY_NAME);
-      await refetch();
-      Alert.alert('Listo', 'Grupo familiar creado');
-    } catch (e) {
-      const message =
-        e && typeof e === 'object' && 'message' in e
-          ? String((e as { message: unknown }).message)
-          : e instanceof Error
-            ? e.message
-            : 'No se pudo crear';
-      Alert.alert('Error', message);
-    }
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
       <WebShell>
       <View className="gap-4 px-5 pb-28 pt-4">
         <Text className="text-2xl font-bold text-ink-900">Familia</Text>
 
-        {!familyId ? (
-          <SurfaceCard
-            title="Crear grupo familiar"
-            subtitle="Compartí gastos y objetivos con tu familia"
-          >
-            <Pressable onPress={onCreateFamily} className="mt-3 items-center rounded-2xl bg-brand-700 py-3">
-              <Text className="font-medium text-white">Crear grupo familiar</Text>
-            </Pressable>
-          </SurfaceCard>
+        {isLoading || !familyId ? (
+          <View className="items-center py-10">
+            <ActivityIndicator color="#0D9488" />
+            <Text className="mt-3 text-sm text-ink-500">Preparando tu grupo familiar…</Text>
+          </View>
         ) : (
           <>
             <SurfaceCard

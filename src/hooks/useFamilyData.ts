@@ -58,6 +58,11 @@ export function useFamilyContext() {
     queryKey: ['families'],
     queryFn: async (): Promise<Family[]> => {
       if (!isSupabaseConfigured) return [DEMO_FAMILY];
+
+      // Tras invite pendiente / primer login: asegura al menos un grupo.
+      const { error: ensureError } = await supabase.rpc('ensure_own_family');
+      if (ensureError) throw ensureError;
+
       const { data: memberships, error } = await supabase
         .from('family_members')
         .select('family_id, families(*)')
