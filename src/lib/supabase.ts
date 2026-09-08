@@ -2,7 +2,8 @@ import 'react-native-url-polyfill/auto';
 import { polyfillWebCrypto } from 'expo-standard-web-crypto';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupportedStorage } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
 polyfillWebCrypto();
 
@@ -15,14 +16,23 @@ export const isSupabaseConfigured =
   !supabaseUrl.includes('YOUR_PROJECT') &&
   !supabaseAnonKey.includes('YOUR_ANON');
 
+/** Export estático web corre en Node sin `window`; native siempre puede usar AsyncStorage. */
+const isWebSSR = Platform.OS === 'web' && typeof window === 'undefined';
+
+const memoryStorage: SupportedStorage = {
+  getItem: async () => null,
+  setItem: async () => {},
+  removeItem: async () => {},
+};
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder',
   {
     auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
+      storage: isWebSSR ? memoryStorage : AsyncStorage,
+      autoRefreshToken: !isWebSSR,
+      persistSession: !isWebSSR,
       detectSessionInUrl: false,
       flowType: 'pkce',
     },

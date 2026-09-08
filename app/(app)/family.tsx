@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { SurfaceCard } from '@/src/components/SurfaceCard';
+import { WebShell } from '@/src/components/WebShell';
 import {
   useBudgetGoals,
   useCreateFamily,
@@ -11,13 +13,11 @@ import {
   useMembers,
   useSaveBudgetGoals,
 } from '@/src/hooks/useFamilyData';
-import { useAuth } from '@/src/hooks/useAuth';
 import { signOut } from '@/src/lib/auth';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { budgetGoalsSchema, inviteSchema } from '@/src/schemas';
 
 export default function FamilyScreen() {
-  const { user } = useAuth();
   const { familyId, families, refetch } = useFamilyContext();
   const membersQuery = useMembers(familyId);
   const goalsQuery = useBudgetGoals(familyId);
@@ -89,6 +89,7 @@ export default function FamilyScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <WebShell>
       <View className="gap-4 px-5 pb-28 pt-4">
         <Text className="text-2xl font-bold text-ink-900">Familia</Text>
 
@@ -154,9 +155,16 @@ export default function FamilyScreen() {
           </>
         )}
 
-        {isSupabaseConfigured && user ? (
+        {isSupabaseConfigured ? (
           <Pressable
-            onPress={() => signOut()}
+            onPress={async () => {
+              try {
+                await signOut();
+                router.replace('/(auth)/login');
+              } catch (e) {
+                Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo cerrar sesión');
+              }
+            }}
             className="items-center rounded-2xl border border-ink-200 bg-white py-3"
           >
             <Text className="text-ink-700">Cerrar sesión</Text>
@@ -165,6 +173,7 @@ export default function FamilyScreen() {
           <Text className="text-center text-xs text-ink-500">Modo demo (sin Supabase configurado)</Text>
         )}
       </View>
+      </WebShell>
     </SafeAreaView>
   );
 }

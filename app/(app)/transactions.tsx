@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateField } from '@/src/components/DateField';
 import { TagGlyph } from '@/src/components/TagGlyph';
+import { WebShell } from '@/src/components/WebShell';
 import { useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFamilyData';
 import { formatMoney, monthRange } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
@@ -81,6 +82,7 @@ export default function TransactionsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <WebShell>
       <View className="px-5 pt-4">
         <Text className="text-2xl font-bold text-ink-900">Movimientos</Text>
 
@@ -238,6 +240,8 @@ export default function TransactionsScreen() {
           }}
         />
       )}
+
+      </WebShell>
 
       <Modal visible={rangeOpen} transparent animationType="fade" onRequestClose={() => setRangeOpen(false)}>
         <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setRangeOpen(false)}>

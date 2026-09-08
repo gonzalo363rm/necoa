@@ -1,8 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
+import { Platform } from 'react-native';
 
 import type { TransactionType } from '@/src/types/domain';
+
+const isWebSSR = Platform.OS === 'web' && typeof window === 'undefined';
+
+const memoryStorage: StateStorage = {
+  getItem: async () => null,
+  setItem: async () => {},
+  removeItem: async () => {},
+};
+
+const persistStorage = createJSONStorage(() => (isWebSSR ? memoryStorage : AsyncStorage));
 
 type FiltersState = {
   month: string; // yyyy-MM
@@ -55,7 +66,7 @@ export const useSessionStore = create<SessionUiState>()(
     }),
     {
       name: 'necoa-session',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: persistStorage,
     },
   ),
 );
