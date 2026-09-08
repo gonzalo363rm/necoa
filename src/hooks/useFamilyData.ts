@@ -70,17 +70,27 @@ export function useFamilyContext() {
     },
   });
 
-  const familyId = activeFamilyId ?? familiesQuery.data?.[0]?.id ?? null;
+  const families = familiesQuery.data ?? [];
+  const activeIsValid = Boolean(activeFamilyId && families.some((f) => f.id === activeFamilyId));
+  const familyId = activeIsValid ? activeFamilyId : (families[0]?.id ?? null);
 
   useEffect(() => {
-    if (familyId && familyId !== activeFamilyId) {
-      setActiveFamilyId(familyId);
+    if (!familiesQuery.isSuccess) return;
+
+    const list = familiesQuery.data ?? [];
+    // Evita IDs viejos en storage (p. ej. después de borrar users/familias en DB).
+    if (activeFamilyId && !list.some((f) => f.id === activeFamilyId)) {
+      setActiveFamilyId(list[0]?.id ?? null);
+      return;
     }
-  }, [familyId, activeFamilyId, setActiveFamilyId]);
+    if (!activeFamilyId && list[0]?.id) {
+      setActiveFamilyId(list[0].id);
+    }
+  }, [familiesQuery.data, familiesQuery.isSuccess, activeFamilyId, setActiveFamilyId]);
 
   return {
     familyId,
-    families: familiesQuery.data ?? [],
+    families,
     isLoading: familiesQuery.isLoading,
     setActiveFamilyId,
     refetch: familiesQuery.refetch,

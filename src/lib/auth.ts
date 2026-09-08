@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
 import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
+import { useSessionStore } from '@/src/stores';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -77,4 +78,5 @@ export async function signInWithGoogle() {
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
+  useSessionStore.getState().setActiveFamilyId(null);
 }
