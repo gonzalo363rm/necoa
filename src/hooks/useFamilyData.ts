@@ -408,7 +408,12 @@ export function useInviteMember(familyId: string | null) {
         invited_by: invitedBy,
       });
       if (error) throw error;
-      await supabase.functions.invoke('invite-member', { body: { family_id: familyId, email } }).catch(() => null);
+
+      const { data, error: fnError } = await supabase.functions.invoke('invite-member', {
+        body: { family_id: familyId, email },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(String(data.error));
       return { email };
     },
   });

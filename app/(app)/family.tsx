@@ -65,7 +65,7 @@ export default function FamilyScreen() {
     try {
       await invite.mutateAsync(parsed.data.email);
       setEmail('');
-      Alert.alert('Invitación', 'Invite registrado. El mail se envía con la Edge Function.');
+      Alert.alert('Invitación', 'Mail de invitación enviado.');
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo invitar');
     }
