@@ -96,6 +96,26 @@ export function formatLocaleNumber(value: number): string {
   }).format(value);
 }
 
+/** Formatea el monto mientras se tipea: miles con `.` y decimales con `,` (`1234567` → `1.234.567`). */
+export function formatAmountAsYouType(input: string): string {
+  const cleaned = input.replace(/[^\d,]/g, '');
+  if (!cleaned) return '';
+
+  const commaIdx = cleaned.indexOf(',');
+  let intDigits = (commaIdx >= 0 ? cleaned.slice(0, commaIdx) : cleaned).replace(/\D/g, '');
+  const decDigits =
+    commaIdx >= 0 ? cleaned.slice(commaIdx + 1).replace(/\D/g, '').slice(0, 2) : null;
+
+  // Evitar ceros a la izquierda tipo 00012 → 12 (mantener un 0 suelto)
+  intDigits = intDigits.replace(/^0+(?=\d)/, '');
+
+  const withDots = intDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  if (decDigits !== null) return `${withDots},${decDigits}`;
+  if (cleaned.endsWith(',') && commaIdx === cleaned.length - 1) return `${withDots},`;
+  return withDots;
+}
+
 /** Completa el texto del monto a 2 decimales; si no hay coma, la agrega. */
 export function normalizeAmountInput(value: string): string {
   const n = parseLocaleNumber(value);

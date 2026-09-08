@@ -219,10 +219,15 @@ export default function TransactionsScreen() {
                   background
                   size={18}
                 />
-                <View className="flex-1">
-                  <Text className="font-medium text-ink-900">
+                <View className="min-w-0 flex-1">
+                  <Text className="font-medium text-ink-900" numberOfLines={1}>
                     {isExpense ? item.tag?.name || 'Gasto' : item.note || 'Ingreso'}
                   </Text>
+                  {item.note && isExpense ? (
+                    <Text className="text-sm text-ink-600" numberOfLines={2}>
+                      {item.note}
+                    </Text>
+                  ) : null}
                   <Text className="text-xs text-ink-500">
                     {formatDisplayDate(item.occurred_at)}
                     {item.installment_total

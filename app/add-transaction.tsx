@@ -25,7 +25,7 @@ import {
   useTransaction,
   useUpdateTransaction,
 } from '@/src/hooks/useFamilyData';
-import { formatLocaleNumber, normalizeAmountInput } from '@/src/lib/finance';
+import { formatAmountAsYouType, formatLocaleNumber, normalizeAmountInput } from '@/src/lib/finance';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { randomTagColor, TAG_COLORS } from '@/src/lib/tags';
 import { transactionSchema } from '@/src/schemas';
@@ -82,7 +82,7 @@ export default function AddTransactionModal() {
     if (!isEditing || !existingQuery.data || hydrated) return;
     const tx = existingQuery.data;
     setType(tx.type);
-    setAmount(formatLocaleNumber(Number(tx.amount)));
+    setAmount(formatAmountAsYouType(formatLocaleNumber(Number(tx.amount))));
     setNote(tx.note ?? '');
     setOccurredAt(tx.occurred_at);
     setTagId(tx.tag_id);
@@ -144,7 +144,7 @@ export default function AddTransactionModal() {
 
   async function onSave() {
     const normalizedAmount = normalizeAmountInput(amount);
-    setAmount(normalizedAmount);
+    setAmount(formatAmountAsYouType(normalizedAmount));
 
     const selectedSplits = splits
       .filter((s) => s.selected)
@@ -259,8 +259,12 @@ export default function AddTransactionModal() {
         <TextInput
           keyboardType="decimal-pad"
           value={amount}
-          onChangeText={setAmount}
-          onBlur={() => setAmount((current) => (current.trim() ? normalizeAmountInput(current) : current))}
+          onChangeText={(v) => setAmount(formatAmountAsYouType(v))}
+          onBlur={() =>
+            setAmount((current) =>
+              current.trim() ? formatAmountAsYouType(normalizeAmountInput(current)) : current,
+            )
+          }
           placeholder="0,00"
           placeholderTextColor="#94A3B8"
           className="mb-3 rounded-2xl border border-ink-200 bg-white px-4 py-3 text-2xl font-bold text-ink-900"

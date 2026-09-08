@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { progressTone } from '@/src/lib/finance';
 
@@ -9,6 +9,7 @@ type Props = {
   colorClass: string;
   amountLabel?: string;
   kind?: 'expense' | 'savings';
+  onPress?: () => void;
 };
 
 export function GoalProgressBar({
@@ -18,6 +19,7 @@ export function GoalProgressBar({
   colorClass,
   amountLabel,
   kind = 'expense',
+  onPress,
 }: Props) {
   const tone = progressTone(actualPct, targetPct, kind);
   const width = Math.min(100, Math.max(0, actualPct));
@@ -38,7 +40,7 @@ export function GoalProgressBar({
     kind === 'savings' ? (tone === 'ok' ? 'bg-savings' : 'bg-danger') : colorClass;
 
   return (
-    <View className="mb-4">
+    <Pressable onPress={onPress} disabled={!onPress} className="mb-4 active:opacity-90">
       <View className="mb-2 flex-row items-end justify-between">
         <Text className="font-medium text-ink-900">{label}</Text>
         <Text className={`text-sm ${toneText}`}>
@@ -53,6 +55,6 @@ export function GoalProgressBar({
         />
       </View>
       {amountLabel ? <Text className="mt-1 text-xs text-ink-500">{amountLabel}</Text> : null}
-    </View>
+    </Pressable>
   );
 }
