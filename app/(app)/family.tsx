@@ -17,6 +17,8 @@ import { signOut } from '@/src/lib/auth';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { budgetGoalsSchema, inviteSchema } from '@/src/schemas';
 
+const DEFAULT_FAMILY_NAME = 'Grupo Familiar';
+
 export default function FamilyScreen() {
   const { familyId, families, refetch } = useFamilyContext();
   const membersQuery = useMembers(familyId);
@@ -29,7 +31,6 @@ export default function FamilyScreen() {
   const [comfort, setComfort] = useState('30');
   const [savings, setSavings] = useState('30');
   const [email, setEmail] = useState('');
-  const [familyName, setFamilyName] = useState('Familia Necoa');
 
   useEffect(() => {
     if (!goalsQuery.data) return;
@@ -73,9 +74,9 @@ export default function FamilyScreen() {
 
   async function onCreateFamily() {
     try {
-      await createFamily.mutateAsync(familyName);
+      await createFamily.mutateAsync(DEFAULT_FAMILY_NAME);
       await refetch();
-      Alert.alert('Listo', 'Familia creada');
+      Alert.alert('Listo', 'Grupo familiar creado');
     } catch (e) {
       const message =
         e && typeof e === 'object' && 'message' in e
@@ -94,20 +95,20 @@ export default function FamilyScreen() {
         <Text className="text-2xl font-bold text-ink-900">Familia</Text>
 
         {!familyId ? (
-          <SurfaceCard title="Crear familia" subtitle="Empezá un grupo para compartir gastos">
-            <TextInput
-              value={familyName}
-              onChangeText={setFamilyName}
-              className="mt-2 rounded-2xl border border-ink-200 px-4 py-3"
-              placeholderTextColor="#94A3B8"
-            />
+          <SurfaceCard
+            title="Crear grupo familiar"
+            subtitle="Compartí gastos y objetivos con tu familia"
+          >
             <Pressable onPress={onCreateFamily} className="mt-3 items-center rounded-2xl bg-brand-700 py-3">
-              <Text className="font-medium text-white">Crear</Text>
+              <Text className="font-medium text-white">Crear grupo familiar</Text>
             </Pressable>
           </SurfaceCard>
         ) : (
           <>
-            <SurfaceCard title={families[0]?.name ?? 'Tu familia'} subtitle={`${membersQuery.data?.length ?? 0} miembros`}>
+            <SurfaceCard
+              title={families.find((f) => f.id === familyId)?.name ?? families[0]?.name ?? 'Grupo Familiar'}
+              subtitle={`${membersQuery.data?.length ?? 0} miembros`}
+            >
               {(membersQuery.data ?? []).map((m) => (
                 <Text key={m.id} className="mt-1 text-sm text-ink-700">
                   {m.profile?.display_name ?? m.user_id.slice(0, 8)} · {m.role}

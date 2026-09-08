@@ -47,16 +47,16 @@ serve(async (req) => {
     }
 
     const deepLink = `necoa://invite?token=${invite.token}`;
-    const webLink = `${APP_WEB_URL}/?invite=${invite.token}`;
-    const familyName = (invite.families as { name?: string } | null)?.name ?? 'tu familia';
+    const webLink = `${APP_WEB_URL}/invite?token=${invite.token}`;
+    const familyName = (invite.families as { name?: string } | null)?.name ?? 'Grupo Familiar';
 
     await sendEmail({
       to: email,
       subject: `Te invitaron a ${familyName} en Necoa`,
       html: `
         <p>Te invitaron a compartir finanzas en <strong>${familyName}</strong> (Necoa).</p>
-        <p><a href="${webLink}">Abrir invitación</a></p>
-        <p style="color:#666;font-size:12px">Si tenés la app instalada: <a href="${deepLink}">${deepLink}</a></p>
+        <p><a href="${deepLink}">Abrir en la app</a></p>
+        <p><a href="${webLink}">Abrir en el navegador</a></p>
       `,
     });
 

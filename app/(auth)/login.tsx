@@ -4,17 +4,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { signInWithGoogle } from '@/src/lib/auth';
+import { consumePendingInvite } from '@/src/lib/invites';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
+import { useSessionStore } from '@/src/stores';
 
 export default function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const setActiveFamilyId = useSessionStore((s) => s.setActiveFamilyId);
 
   async function onGoogle() {
     setBusy(true);
     setError(null);
     try {
       await signInWithGoogle();
+      try {
+        const family = await consumePendingInvite();
+        if (family?.id) {
+          setActiveFamilyId(family.id);
+          router.replace('/(app)/family');
+          return;
+        }
+      } catch (inviteError) {
+        setError(
+          inviteError instanceof Error
+            ? inviteError.message
+            : 'Sesión ok, pero no se pudo aceptar la invitación',
+        );
+      }
       router.replace('/');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo iniciar sesión');

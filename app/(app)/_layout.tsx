@@ -1,6 +1,7 @@
-import { Tabs, router } from 'expo-router';
 import { ChartPie, Home, Plus, Receipt, Users } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
+import { Tabs, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function FabButton() {
   return (
@@ -14,6 +15,10 @@ function FabButton() {
 }
 
 export default function AppLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 8);
+  const tabBarHeight = 58 + bottomPad;
+
   return (
     <Tabs
       screenOptions={{
@@ -21,8 +26,8 @@ export default function AppLayout() {
         tabBarActiveTintColor: '#0F766E',
         tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          height: 70,
-          paddingBottom: 10,
+          height: tabBarHeight,
+          paddingBottom: bottomPad,
           paddingTop: 8,
           backgroundColor: '#FFFFFF',
           borderTopColor: '#E2E8F0',
