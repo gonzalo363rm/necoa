@@ -88,3 +88,30 @@ Assets en `assets/images/` (icono 1024, adaptive Android, variantes iOS light/da
 - `npm run build:preview:android` — APK de test
 - `npm run build:preview:ios` — IPA de test (Apple Developer)
 - `npm run build:web` — export estático a `dist/` (hostear en Vercel/Netlify/etc.)
+
+### Web en Vercel (test / preview)
+
+1. Login (una vez):
+
+```powershell
+npx vercel login
+```
+
+2. Deploy de preview (test):
+
+```powershell
+npx vercel
+```
+
+La primera vez te pide linkear el proyecto. Agregá en el dashboard (o con CLI) las env:
+
+- `EXPO_PUBLIC_SUPABASE_URL`
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+3. En Supabase → Auth → URL Configuration, sumá la URL de Vercel (ej. `https://necoa-xxx.vercel.app`) a **Redirect URLs** / Site URL según uses Google.
+
+Producción:
+
+```powershell
+npx vercel --prod
+```
