@@ -9,11 +9,20 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.necoa.mobile"
+      "bundleIdentifier": "app.necoa.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/ios-light.png",
+        "dark": "./assets/images/ios-dark.png",
+        "tinted": "./assets/images/ios-tinted.png"
+      }
     },
     "android": {
+      "icon": "./assets/images/android-icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#CCFBF1",
+        "backgroundColor": "#0D9488",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -35,12 +44,20 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#F0FDFA"
+          "backgroundColor": "#F0FDFA",
+          "imageWidth": 200
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "502e9f26-da5e-4404-9bd2-d1c3c85ff333"
+      }
+    },
+    "owner": "expo257"
   }
 }
