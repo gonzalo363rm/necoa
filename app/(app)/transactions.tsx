@@ -2,13 +2,23 @@ import { addMonths, format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateField } from '@/src/components/DateField';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
+import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFamilyData';
 import { formatMoney, monthRange } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
@@ -38,6 +48,7 @@ export default function TransactionsScreen() {
   const to = rangeActive ? dateTo! : monthBounds.to;
   const membersQuery = useMembers(familyId);
   const txQuery = useTransactions(familyId, from, to, memberIds, typeFilter);
+  const { refreshing, onRefresh } = useAppRefresh();
   const monthDate = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
   const thisMonth = currentMonthKey();
   const canReset = rangeActive || month !== thisMonth;
@@ -185,7 +196,7 @@ export default function TransactionsScreen() {
         </View>
       </View>
 
-      {txQuery.isLoading ? (
+      {txQuery.isLoading && !refreshing ? (
         <ActivityIndicator className="mt-10" color="#0D9488" />
       ) : (
         <FlatList
@@ -193,6 +204,14 @@ export default function TransactionsScreen() {
           contentContainerClassName="px-5 pb-28"
           data={txQuery.data ?? []}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0D9488"
+              colors={['#0D9488']}
+            />
+          }
           ListEmptyComponent={<Text className="mt-8 text-center text-ink-500">Sin movimientos</Text>}
           renderItem={({ item }) => {
             const isExpense = item.type === 'expense';

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Trash2 } from 'lucide-react-native';
 
 import { DateField } from '@/src/components/DateField';
 import { TagGlyph, TAG_ICON_OPTIONS } from '@/src/components/TagGlyph';
@@ -64,6 +66,7 @@ export default function AddTransactionModal() {
   const [newTagColor, setNewTagColor] = useState(randomTagColor());
   const [splits, setSplits] = useState<SplitDraft[]>([]);
   const [hydrated, setHydrated] = useState(!isEditing);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (isEditing || !membersQuery.data?.length || !userId) return;
@@ -200,27 +203,25 @@ export default function AddTransactionModal() {
     }
   }
 
+  async function performDelete() {
+    if (!transactionId) return;
+    try {
+      await deleteTx.mutateAsync(transactionId);
+      setDeleteOpen(false);
+      router.back();
+    } catch (e) {
+      setDeleteOpen(false);
+      const message =
+        e && typeof e === 'object' && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : 'No se pudo eliminar';
+      Alert.alert('Error', message);
+    }
+  }
+
   function onDelete() {
     if (!transactionId) return;
-    Alert.alert('Eliminar movimiento', '¿Seguro que querés borrarlo?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteTx.mutateAsync(transactionId);
-            router.back();
-          } catch (e) {
-            const message =
-              e && typeof e === 'object' && 'message' in e
-                ? String((e as { message: unknown }).message)
-                : 'No se pudo eliminar';
-            Alert.alert('Error', message);
-          }
-        },
-      },
-    ]);
+    setDeleteOpen(true);
   }
 
   if (isEditing && (existingQuery.isLoading || !hydrated)) {
@@ -496,6 +497,50 @@ export default function AddTransactionModal() {
           setNewTagColor(randomTagColor());
         }}
       />
+
+      <Modal
+        visible={deleteOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !deleteTx.isPending && setDeleteOpen(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end bg-black/40"
+          onPress={() => !deleteTx.isPending && setDeleteOpen(false)}
+        >
+          <Pressable
+            className="rounded-t-3xl bg-white px-5 pb-10 pt-6"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="mx-auto mb-4 h-14 w-14 items-center justify-center rounded-full bg-danger/10">
+              <Trash2 color="#DC2626" size={26} />
+            </View>
+            <Text className="text-center text-xl font-bold text-ink-900">Eliminar movimiento</Text>
+            <Text className="mt-2 text-center text-sm leading-5 text-ink-500">
+              Esta acción no se puede deshacer. Se va a borrar del grupo familiar.
+            </Text>
+
+            <Pressable
+              onPress={() => void performDelete()}
+              disabled={deleteTx.isPending}
+              className="mt-6 items-center rounded-2xl bg-danger py-4 active:opacity-90"
+            >
+              {deleteTx.isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-base font-bold text-white">Sí, eliminar</Text>
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => setDeleteOpen(false)}
+              disabled={deleteTx.isPending}
+              className="mt-2 items-center rounded-2xl bg-ink-100 py-4"
+            >
+              <Text className="text-base font-medium text-ink-700">Cancelar</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   );
 }

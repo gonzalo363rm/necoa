@@ -69,7 +69,7 @@ export function formatMoney(amount: number, currency = 'ARS') {
   }).format(amount);
 }
 
-/** Acepta `1234,56`, `1.234,56` o `1234.56`. */
+/** Acepta `1234,56`, `1.234,56` o `1234.56`. En es-AR el `.` es siempre miles. */
 export function parseLocaleNumber(value: unknown): number {
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return Number.NaN;
@@ -77,13 +77,25 @@ export function parseLocaleNumber(value: unknown): number {
   const trimmed = value.trim().replace(/\s/g, '');
   if (!trimmed) return Number.NaN;
 
-  if (trimmed.includes(',') && trimmed.includes('.')) {
+  // Quitar separadores de miles (.) y usar coma o el último punto como decimal.
+  // Importante: `12.500` debe ser 12500, no 12.5 (bug de Number("12.500")).
+  if (trimmed.includes(',')) {
     return Number(trimmed.replace(/\./g, '').replace(',', '.'));
   }
-  if (trimmed.includes(',')) {
-    return Number(trimmed.replace(',', '.'));
+
+  // Solo puntos: si parecen miles (grupos de 3), quitarlos; si no, el último es decimal.
+  const onlyDots = trimmed.match(/^\d{1,3}(\.\d{3})+$/);
+  if (onlyDots) {
+    return Number(trimmed.replace(/\./g, ''));
   }
-  return Number(trimmed);
+
+  const lastDot = trimmed.lastIndexOf('.');
+  if (lastDot >= 0 && trimmed.slice(lastDot + 1).length <= 2 && !trimmed.slice(0, lastDot).includes('.')) {
+    // p.ej. "12.5" → 12.5
+    return Number(trimmed);
+  }
+
+  return Number(trimmed.replace(/\./g, ''));
 }
 
 /** Formatea número para inputs: siempre 2 decimales con coma (`100` → `100,00`). */

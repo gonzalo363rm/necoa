@@ -200,7 +200,8 @@ export function useTransactions(
         .eq('family_id', familyId!)
         .gte('occurred_at', from)
         .lte('occurred_at', to)
-        .order('occurred_at', { ascending: false });
+        .order('occurred_at', { ascending: false })
+        .order('created_at', { ascending: false });
       if (error) throw error;
 
       return ((data ?? []) as Transaction[])
@@ -396,11 +397,30 @@ export function useDeleteTransaction(familyId: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!isSupabaseConfigured || !familyId) {
+      if (!isSupabaseConfigured) {
         return { ok: true as const };
       }
-      const { error } = await supabase.from('transactions').delete().eq('id', id).eq('family_id', familyId);
+      if (!familyId) {
+        throw new Error('No hay grupo familiar activo');
+      }
+
+      // Borrar splits primero (evita fallos de CASCADE + RLS)
+      const { error: splitError } = await supabase
+        .from('transaction_splits')
+        .delete()
+        .eq('transaction_id', id);
+      if (splitError) throw splitError;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id)
+        .eq('family_id', familyId)
+        .select('id');
       if (error) throw error;
+      if (!data?.length) {
+        throw new Error('No se pudo eliminar el movimiento (sin permiso o ya no existe)');
+      }
       return { ok: true as const };
     },
     onSuccess: (_data, id) => {

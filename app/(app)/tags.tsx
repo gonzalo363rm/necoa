@@ -6,6 +6,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -16,6 +17,7 @@ import { X } from 'lucide-react-native';
 
 import { TagGlyph, TAG_ICON_OPTIONS } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
+import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useFamilyContext, useTags, useUpsertTag } from '@/src/hooks/useFamilyData';
 import { randomTagColor, TAG_COLORS } from '@/src/lib/tags';
 import { tagSchema } from '@/src/schemas';
@@ -32,6 +34,7 @@ export default function TagsScreen() {
   const { familyId } = useFamilyContext();
   const tagsQuery = useTags(familyId);
   const upsert = useUpsertTag(familyId);
+  const { refreshing, onRefresh } = useAppRefresh();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Tag | null>(null);
   const [name, setName] = useState('');
@@ -91,6 +94,14 @@ export default function TagsScreen() {
           contentContainerClassName="px-5 pb-28"
           data={tagsQuery.data ?? []}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0D9488"
+              colors={['#0D9488']}
+            />
+          }
           renderItem={({ item }) => (
             <Pressable
               onPress={() => openEdit(item)}

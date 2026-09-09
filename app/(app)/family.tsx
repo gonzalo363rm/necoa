@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { WebShell } from '@/src/components/WebShell';
+import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import {
   useBudgetGoals,
   useFamilyContext,
@@ -22,6 +32,7 @@ export default function FamilyScreen() {
   const goalsQuery = useBudgetGoals(familyId);
   const saveGoals = useSaveBudgetGoals(familyId);
   const invite = useInviteMember(familyId);
+  const { refreshing, onRefresh } = useAppRefresh();
 
   const [living, setLiving] = useState('40');
   const [comfort, setComfort] = useState('30');
@@ -71,7 +82,18 @@ export default function FamilyScreen() {
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
       <WebShell>
-      <View className="gap-4 px-5 pb-28 pt-4">
+      <ScrollView
+        contentContainerClassName="gap-4 px-5 pb-28 pt-4"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#0D9488"
+            colors={['#0D9488']}
+          />
+        }
+      >
         <Text className="text-2xl font-bold text-ink-900">Familia</Text>
 
         {isLoading || !familyId ? (
@@ -149,7 +171,7 @@ export default function FamilyScreen() {
         ) : (
           <Text className="text-center text-xs text-ink-500">Modo demo (sin Supabase configurado)</Text>
         )}
-      </View>
+      </ScrollView>
       </WebShell>
     </SafeAreaView>
   );

@@ -7,6 +7,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -18,6 +19,7 @@ import { GoalProgressBar } from '@/src/components/GoalProgressBar';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
+import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useBudgetGoals, useFamilyContext, useTransactions } from '@/src/hooks/useFamilyData';
 import { computeMonthBreakdown, formatMoney, monthRange, resolveCategory } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
@@ -52,6 +54,7 @@ export default function HomeScreen() {
   const { from, to } = monthRange(month);
   const goalsQuery = useBudgetGoals(familyId);
   const txQuery = useTransactions(familyId, from, to, memberIds);
+  const { refreshing, onRefresh } = useAppRefresh();
 
   const breakdown = computeMonthBreakdown(txQuery.data ?? [], goalsQuery.data);
   const monthDate = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
@@ -71,10 +74,23 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
       <WebShell>
-        <ScrollView contentContainerClassName="px-5 pb-28 pt-4" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerClassName="px-5 pb-28 pt-4"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0D9488"
+              colors={['#0D9488']}
+            />
+          }
+        >
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-3">
-              <Text className="text-3xl font-bold text-brand-800">Necoa</Text>
+              <Pressable onPress={onRefresh} hitSlop={8}>
+                <Text className="text-3xl font-bold text-brand-800">Necoa</Text>
+              </Pressable>
               <Text className="mt-1 text-sm text-ink-500">
                 {families[0]?.name ?? 'Tu familia'} · necesidades · comodidades · ahorro
               </Text>

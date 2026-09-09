@@ -1,7 +1,7 @@
 {
   "name": "necoa",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo/ui": "~57.0.16",
