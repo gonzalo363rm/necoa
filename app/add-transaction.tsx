@@ -27,6 +27,7 @@ import {
   useTransaction,
   useUpdateTransaction,
 } from '@/src/hooks/useFamilyData';
+import { useSetEntriesStatus } from '@/src/hooks/useLists';
 import { formatAmountAsYouType, formatLocaleNumber, normalizeAmountInput } from '@/src/lib/finance';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { randomTagColor, TAG_COLORS } from '@/src/lib/tags';
@@ -36,9 +37,17 @@ import type { TagCategory, TransactionType } from '@/src/types/domain';
 type SplitDraft = { user_id: string; share_pct: string; selected: boolean };
 
 export default function AddTransactionModal() {
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; note?: string; listEntryIds?: string }>();
   const transactionId = typeof params.id === 'string' ? params.id : null;
   const isEditing = Boolean(transactionId);
+  const listEntryIds = useMemo(() => {
+    const raw = typeof params.listEntryIds === 'string' ? params.listEntryIds : '';
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [params.listEntryIds]);
+  const presetNote = typeof params.note === 'string' ? params.note : '';
 
   const { user } = useAuth();
   const userId = user?.id ?? (isSupabaseConfigured ? null : demoUser.id);
@@ -49,10 +58,11 @@ export default function AddTransactionModal() {
   const createTx = useCreateTransaction(familyId, userId);
   const updateTx = useUpdateTransaction(familyId);
   const deleteTx = useDeleteTransaction(familyId);
+  const setListEntriesStatus = useSetEntriesStatus(familyId);
 
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(() => (!transactionId && presetNote ? presetNote : ''));
   const [occurredAt, setOccurredAt] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [tagId, setTagId] = useState<string | null>(null);
   const [installments, setInstallments] = useState('');
@@ -192,6 +202,13 @@ export default function AddTransactionModal() {
         await updateTx.mutateAsync({ id: transactionId, values: parsed.data });
       } else {
         await createTx.mutateAsync(parsed.data);
+        if (listEntryIds.length > 0) {
+          await setListEntriesStatus.mutateAsync({
+            entryIds: listEntryIds,
+            status: 'done',
+            userId,
+          });
+        }
       }
       router.back();
     } catch (e) {
@@ -504,14 +521,12 @@ export default function AddTransactionModal() {
         animationType="fade"
         onRequestClose={() => !deleteTx.isPending && setDeleteOpen(false)}
       >
-        <Pressable
-          className="flex-1 justify-end bg-black/40"
-          onPress={() => !deleteTx.isPending && setDeleteOpen(false)}
-        >
+        <View className="flex-1 justify-end">
           <Pressable
-            className="rounded-t-3xl bg-white px-5 pb-10 pt-6"
-            onPress={(e) => e.stopPropagation()}
-          >
+            className="absolute inset-0 bg-black/40"
+            onPress={() => !deleteTx.isPending && setDeleteOpen(false)}
+          />
+          <View className="rounded-t-3xl bg-white px-5 pb-10 pt-6">
             <View className="mx-auto mb-4 h-14 w-14 items-center justify-center rounded-full bg-danger/10">
               <Trash2 color="#DC2626" size={26} />
             </View>
@@ -538,8 +553,8 @@ export default function AddTransactionModal() {
             >
               <Text className="text-base font-medium text-ink-700">Cancelar</Text>
             </Pressable>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </>
   );

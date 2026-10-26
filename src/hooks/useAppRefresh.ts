@@ -16,6 +16,7 @@ export function useAppRefresh() {
         qc.invalidateQueries({ queryKey: ['tags'] }),
         qc.invalidateQueries({ queryKey: ['transactions'] }),
         qc.invalidateQueries({ queryKey: ['transaction'] }),
+        qc.invalidateQueries({ queryKey: ['lists'] }),
       ]);
     } finally {
       setRefreshing(false);

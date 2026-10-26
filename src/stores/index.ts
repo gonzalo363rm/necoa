@@ -27,6 +27,8 @@ type FiltersState = {
   setTypeFilter: (type: 'all' | TransactionType) => void;
   setDateRange: (from: string | null, to: string | null) => void;
   clearDateRange: () => void;
+  chartsRange: { from: string; to: string } | null;
+  setChartsRange: (range: { from: string; to: string } | null) => void;
 };
 
 function currentMonth() {
@@ -51,6 +53,8 @@ export const useFiltersStore = create<FiltersState>()((set, get) => ({
   setTypeFilter: (typeFilter) => set({ typeFilter }),
   setDateRange: (dateFrom, dateTo) => set({ dateFrom, dateTo }),
   clearDateRange: () => set({ dateFrom: null, dateTo: null }),
+  chartsRange: null,
+  setChartsRange: (chartsRange) => set({ chartsRange }),
 }));
 
 type SessionUiState = {

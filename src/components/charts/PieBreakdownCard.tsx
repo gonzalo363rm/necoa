@@ -11,9 +11,16 @@ type Props = {
   subtitle?: string;
   slices: Slice[];
   emptyLabel?: string;
+  onSlicePress?: (slice: Slice) => void;
 };
 
-export function PieBreakdownCard({ title, subtitle, slices, emptyLabel = 'Sin datos' }: Props) {
+export function PieBreakdownCard({
+  title,
+  subtitle,
+  slices,
+  emptyLabel = 'Sin datos',
+  onSlicePress,
+}: Props) {
   const [mode, setMode] = useState<'pct' | 'amount'>('pct');
   const total = useMemo(() => slices.reduce((s, x) => s + x.amount, 0), [slices]);
 
@@ -21,6 +28,7 @@ export function PieBreakdownCard({ title, subtitle, slices, emptyLabel = 'Sin da
     value: s.amount,
     color: s.color,
     text: mode === 'pct' ? `${s.pct.toFixed(0)}%` : formatCompact(s.amount),
+    onPress: onSlicePress ? () => onSlicePress(s) : undefined,
   }));
 
   return (
@@ -40,28 +48,37 @@ export function PieBreakdownCard({ title, subtitle, slices, emptyLabel = 'Sin da
         <Text className="py-8 text-center text-sm text-ink-500">{emptyLabel}</Text>
       ) : (
         <View className="items-center pt-2">
-          <Pressable onPress={() => setMode((m) => (m === 'pct' ? 'amount' : 'pct'))}>
-            <PieChart
-              data={data}
-              donut
-              radius={96}
-              innerRadius={58}
-              focusOnPress
-              sectionAutoFocus
-              centerLabelComponent={() => (
-                <View className="items-center px-2">
-                  <Text className="text-[10px] text-ink-500">{mode === 'pct' ? 'Total' : 'Suma'}</Text>
-                  <Text className="text-center text-xs font-bold text-ink-900">
-                    {mode === 'pct' ? '100%' : formatCompact(total)}
-                  </Text>
-                </View>
-              )}
-            />
-          </Pressable>
-          <Text className="mb-3 mt-1 text-[11px] text-ink-400">Tocá el gráfico para cambiar % / monto</Text>
+          <PieChart
+            data={data}
+            donut
+            radius={96}
+            innerRadius={58}
+            focusOnPress
+            sectionAutoFocus
+            centerLabelComponent={() => (
+              <View className="items-center px-2">
+                <Text className="text-[10px] text-ink-500">{mode === 'pct' ? 'Total' : 'Suma'}</Text>
+                <Text className="text-center text-xs font-bold text-ink-900">
+                  {mode === 'pct' ? '100%' : formatCompact(total)}
+                </Text>
+              </View>
+            )}
+          />
+          <Text className="mb-3 mt-1 text-[11px] text-ink-400">
+            {onSlicePress
+              ? 'Tocá una porción o etiqueta para ver los movimientos'
+              : 'Usá % / $ para cambiar la escala'}
+          </Text>
           <View className="w-full gap-2">
             {slices.map((s) => (
-              <View key={s.id} className="flex-row items-center justify-between">
+              <Pressable
+                key={s.id}
+                disabled={!onSlicePress}
+                onPress={() => onSlicePress?.(s)}
+                className={`flex-row items-center justify-between rounded-xl px-1 py-1.5 ${
+                  onSlicePress ? 'active:bg-ink-50' : ''
+                }`}
+              >
                 <View className="flex-row items-center gap-2">
                   <View className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color }} />
                   <Text className="text-sm text-ink-700">{s.label}</Text>
@@ -69,7 +86,7 @@ export function PieBreakdownCard({ title, subtitle, slices, emptyLabel = 'Sin da
                 <Text className="text-sm font-medium text-ink-900">
                   {mode === 'pct' ? `${s.pct.toFixed(1)}%` : formatMoney(s.amount)}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         </View>

@@ -1,21 +1,10 @@
-import { addMonths, format, parse } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { format } from 'date-fns';
+import { useMemo } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DateField } from '@/src/components/DateField';
+import { PeriodSelector } from '@/src/components/PeriodSelector';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
 import { useAppRefresh } from '@/src/hooks/useAppRefresh';
@@ -23,10 +12,6 @@ import { useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFa
 import { formatMoney, monthRange } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
 import { useFiltersStore } from '@/src/stores';
-
-function currentMonthKey() {
-  return format(new Date(), 'yyyy-MM');
-}
 
 export default function TransactionsScreen() {
   const month = useFiltersStore((s) => s.month);
@@ -39,7 +24,6 @@ export default function TransactionsScreen() {
   const clearMembers = useFiltersStore((s) => s.clearMembers);
   const setTypeFilter = useFiltersStore((s) => s.setTypeFilter);
   const setDateRange = useFiltersStore((s) => s.setDateRange);
-  const clearDateRange = useFiltersStore((s) => s.clearDateRange);
 
   const rangeActive = Boolean(dateFrom && dateTo);
   const { familyId } = useFamilyContext();
@@ -49,13 +33,6 @@ export default function TransactionsScreen() {
   const membersQuery = useMembers(familyId);
   const txQuery = useTransactions(familyId, from, to, memberIds, typeFilter);
   const { refreshing, onRefresh } = useAppRefresh();
-  const monthDate = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
-  const thisMonth = currentMonthKey();
-  const canReset = rangeActive || month !== thisMonth;
-
-  const [rangeOpen, setRangeOpen] = useState(false);
-  const [rangeDraftFrom, setRangeDraftFrom] = useState(dateFrom ?? monthBounds.from);
-  const [rangeDraftTo, setRangeDraftTo] = useState(dateTo ?? monthBounds.to);
 
   const summary = useMemo(() => {
     const rows = txQuery.data ?? [];
@@ -69,69 +46,20 @@ export default function TransactionsScreen() {
     return { income, expense, total: income - expense };
   }, [txQuery.data]);
 
-  function shiftMonth(delta: number) {
-    clearDateRange();
-    setMonth(format(addMonths(monthDate, delta), 'yyyy-MM'));
-  }
-
-  function openRange() {
-    setRangeDraftFrom(dateFrom ?? monthBounds.from);
-    setRangeDraftTo(dateTo ?? monthBounds.to);
-    setRangeOpen(true);
-  }
-
-  function applyRange() {
-    setDateRange(rangeDraftFrom, rangeDraftTo);
-    setRangeOpen(false);
-  }
-
-  function resetToCurrentMonth() {
-    clearDateRange();
-    setMonth(thisMonth);
-    setRangeOpen(false);
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
       <WebShell>
       <View className="px-5 pt-4">
         <Text className="text-2xl font-bold text-ink-900">Movimientos</Text>
 
-        {rangeActive ? (
-          <View className="mt-4 flex-row items-center gap-2 rounded-2xl border border-ink-100 bg-white px-3 py-2">
-            <Pressable onPress={openRange} className="flex-1 px-2 py-2">
-              <Text className="text-xs text-ink-500">Rango · tocá para editar</Text>
-              <Text className="font-medium text-ink-900">
-                {formatDisplayDate(dateFrom!)} – {formatDisplayDate(dateTo!)}
-              </Text>
-            </Pressable>
-            {canReset ? (
-              <Pressable onPress={resetToCurrentMonth} className="rounded-full bg-ink-100 px-3 py-2">
-                <Text className="text-xs font-medium text-ink-700">Reiniciar</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        ) : (
-          <View className="mt-4 flex-row items-center rounded-2xl border border-ink-100 bg-white px-2 py-2">
-            <Pressable onPress={() => shiftMonth(-1)} className="p-2">
-              <ChevronLeft color="#334155" />
-            </Pressable>
-            <Pressable onPress={openRange} className="flex-1 items-center py-2">
-              <Text className="font-medium capitalize text-ink-900">
-                {format(monthDate, 'MMMM yyyy', { locale: es })}
-              </Text>
-              <Text className="mt-0.5 text-[11px] text-ink-400">Tocá para elegir rango</Text>
-            </Pressable>
-            <Pressable onPress={() => shiftMonth(1)} className="p-2">
-              <ChevronRight color="#334155" />
-            </Pressable>
-            {canReset ? (
-              <Pressable onPress={resetToCurrentMonth} className="mr-1 rounded-full bg-ink-100 px-3 py-2">
-                <Text className="text-xs font-medium text-ink-700">Reiniciar</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        )}
+        <PeriodSelector
+          className="mt-4"
+          month={month}
+          range={rangeActive ? { from: dateFrom!, to: dateTo! } : null}
+          onMonthChange={setMonth}
+          onRangeChange={setDateRange}
+          onReset={() => setMonth(format(new Date(), 'yyyy-MM'))}
+        />
 
         <View className="mt-3 flex-row gap-2">
           {(
@@ -267,37 +195,6 @@ export default function TransactionsScreen() {
 
       </WebShell>
 
-      <Modal visible={rangeOpen} transparent animationType="fade" onRequestClose={() => setRangeOpen(false)}>
-        <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setRangeOpen(false)}>
-          <Pressable className="max-h-[85%] rounded-t-3xl bg-white" onPress={(e) => e.stopPropagation()}>
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerClassName="px-5 pb-10 pt-5"
-              showsVerticalScrollIndicator={false}
-            >
-              <Text className="text-xl font-bold text-ink-900">Rango de fechas</Text>
-              <Text className="mt-1 text-sm text-ink-500">
-                Esto ignora el selector de mes. Tocá cada fecha para elegirla.
-              </Text>
-
-              <View className="mt-4 gap-3">
-                <DateField label="Desde" compact value={rangeDraftFrom} onChange={setRangeDraftFrom} />
-                <DateField label="Hasta" compact value={rangeDraftTo} onChange={setRangeDraftTo} />
-              </View>
-
-              <Pressable onPress={applyRange} className="mt-5 items-center rounded-2xl bg-brand-700 py-3.5">
-                <Text className="font-medium text-white">Aplicar rango</Text>
-              </Pressable>
-              <Pressable onPress={resetToCurrentMonth} className="mt-2 items-center rounded-2xl bg-ink-100 py-3.5">
-                <Text className="font-medium text-ink-700">Reiniciar al mes actual</Text>
-              </Pressable>
-              <Pressable onPress={() => setRangeOpen(false)} className="mt-2 items-center py-3">
-                <Text className="font-medium text-ink-500">Cancelar</Text>
-              </Pressable>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 }

@@ -78,3 +78,52 @@ export type MonthBreakdown = {
   savingsPct: number;
   savingsAmount: number;
 };
+
+export type ListRepeatMode = 'inherit' | 'custom';
+export type ListEntryStatus = 'pending' | 'done' | 'skipped';
+
+export type ListCategory = {
+  id: string;
+  family_id: string;
+  name: string;
+  /** null = sin repetir; 1 = todos los meses; N = cada N meses */
+  repeat_months: number | null;
+  sort_order: number;
+  created_at?: string;
+};
+
+export type ListItem = {
+  id: string;
+  family_id: string;
+  category_id: string;
+  name: string;
+  repeat_mode: ListRepeatMode;
+  repeat_months: number | null;
+  start_month: string;
+  /** Mayor = más arriba en la lista. */
+  sort_order: number;
+  archived_at: string | null;
+  created_at?: string;
+};
+
+export type ListEntry = {
+  id: string;
+  family_id: string;
+  item_id: string;
+  month: string;
+  status: ListEntryStatus;
+  done_at: string | null;
+  done_by: string | null;
+  created_at?: string;
+};
+
+/** Item con su entrada del mes (si existe). */
+export type ListItemWithEntry = ListItem & {
+  entry: ListEntry | null;
+  /** Regla efectiva tras resolver inherit vs custom. */
+  effective_repeat_months: number | null;
+};
+
+export type ListCategoryWithItems = ListCategory & {
+  items: ListItemWithEntry[];
+};

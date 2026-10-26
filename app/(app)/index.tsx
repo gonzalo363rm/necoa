@@ -1,6 +1,6 @@
 import { addMonths, format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Tags } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Tags, UserPlus, Users } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,7 +20,7 @@ import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
 import { useAppRefresh } from '@/src/hooks/useAppRefresh';
-import { useBudgetGoals, useFamilyContext, useTransactions } from '@/src/hooks/useFamilyData';
+import { useBudgetGoals, useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFamilyData';
 import { computeMonthBreakdown, formatMoney, monthRange, resolveCategory } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
 import { useFiltersStore } from '@/src/stores';
@@ -54,6 +54,8 @@ export default function HomeScreen() {
   const { from, to } = monthRange(month);
   const goalsQuery = useBudgetGoals(familyId);
   const txQuery = useTransactions(familyId, from, to, memberIds);
+  const membersQuery = useMembers(familyId);
+  const memberCount = membersQuery.data?.length ?? 0;
   const { refreshing, onRefresh } = useAppRefresh();
 
   const breakdown = computeMonthBreakdown(txQuery.data ?? [], goalsQuery.data);
@@ -95,13 +97,43 @@ export default function HomeScreen() {
                 {families[0]?.name ?? 'Tu familia'} · necesidades · comodidades · ahorro
               </Text>
             </View>
-            <Pressable
-              onPress={() => router.push('/(app)/tags')}
-              className="mt-1 h-10 w-10 items-center justify-center rounded-full border border-ink-100 bg-white"
-            >
-              <Tags color="#0F766E" size={18} />
-            </Pressable>
+            <View className="mt-1 flex-row items-center gap-2">
+              <Pressable
+                onPress={() => router.push('/(app)/tags')}
+                className="h-10 w-10 items-center justify-center rounded-full border border-ink-100 bg-white"
+              >
+                <Tags color="#0F766E" size={18} />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/(app)/family')}
+                className="h-10 flex-row items-center gap-1.5 rounded-full bg-brand-700 px-3 active:opacity-90"
+              >
+                <Users color="#fff" size={16} />
+                <Text className="text-sm font-semibold text-white">Familia</Text>
+                {memberCount > 0 ? (
+                  <View className="ml-0.5 min-w-[20px] items-center rounded-full bg-white/25 px-1.5">
+                    <Text className="text-xs font-bold text-white">{memberCount}</Text>
+                  </View>
+                ) : null}
+              </Pressable>
+            </View>
           </View>
+
+          {membersQuery.isSuccess && memberCount <= 1 ? (
+            <Pressable
+              onPress={() => router.push('/(app)/family')}
+              className="mt-4 flex-row items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 active:opacity-90"
+            >
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-700">
+                <UserPlus color="#fff" size={18} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-semibold text-brand-800">Sumá a alguien a tu grupo</Text>
+                <Text className="text-sm text-ink-500">Invitá a tu familia para compartir gastos y listas</Text>
+              </View>
+              <ChevronRight color="#0F766E" size={18} />
+            </Pressable>
+          ) : null}
 
           <View className="mt-5 flex-row items-center justify-between rounded-2xl border border-ink-100 bg-white px-3 py-2">
             <Pressable onPress={() => shiftMonth(-1)} className="p-2">
@@ -167,11 +199,9 @@ export default function HomeScreen() {
       </WebShell>
 
       <Modal visible={goalDetail !== null} transparent animationType="fade" onRequestClose={() => setGoalDetail(null)}>
-        <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setGoalDetail(null)}>
-          <Pressable
-            className="max-h-[80%] rounded-t-3xl bg-white"
-            onPress={(e) => e.stopPropagation()}
-          >
+        <View className="flex-1 justify-end">
+          <Pressable className="absolute inset-0 bg-black/40" onPress={() => setGoalDetail(null)} />
+          <View className="max-h-[80%] rounded-t-3xl bg-white">
             <View className="border-b border-ink-100 px-5 pb-3 pt-5">
               <Text className="text-xl font-bold text-ink-900">
                 {goalDetail ? GOAL_TITLES[goalDetail] : ''}
@@ -228,8 +258,8 @@ export default function HomeScreen() {
             <Pressable onPress={() => setGoalDetail(null)} className="items-center border-t border-ink-100 py-4">
               <Text className="font-medium text-ink-600">Cerrar</Text>
             </Pressable>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );

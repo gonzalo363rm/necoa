@@ -1,3 +1,4 @@
+import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -94,7 +95,16 @@ export default function FamilyScreen() {
           />
         }
       >
-        <Text className="text-2xl font-bold text-ink-900">Familia</Text>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(app)'))}
+            hitSlop={8}
+            className="h-10 w-10 items-center justify-center rounded-full border border-ink-100 bg-white"
+          >
+            <ChevronLeft color="#334155" size={20} />
+          </Pressable>
+          <Text className="text-2xl font-bold text-ink-900">Familia</Text>
+        </View>
 
         {isLoading || !familyId ? (
           <View className="items-center py-10">
@@ -112,6 +122,21 @@ export default function FamilyScreen() {
                   {m.profile?.display_name ?? m.profile?.email ?? m.user_id.slice(0, 8)}
                 </Text>
               ))}
+            </SurfaceCard>
+
+            <SurfaceCard title="Invitar por email" subtitle="Sumá un miembro al grupo">
+              <TextInput
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor="#94A3B8"
+                className="mt-2 rounded-2xl border border-ink-200 px-4 py-3 text-ink-900"
+              />
+              <Pressable onPress={onInvite} className="mt-3 items-center rounded-2xl bg-ink-900 py-3">
+                <Text className="font-medium text-white">Enviar invite</Text>
+              </Pressable>
             </SurfaceCard>
 
             <SurfaceCard title="Objetivos %" subtitle="Deben sumar 100 (default 40/30/30)">
@@ -134,21 +159,6 @@ export default function FamilyScreen() {
               </View>
               <Pressable onPress={onSaveGoals} className="mt-3 items-center rounded-2xl bg-brand-700 py-3">
                 <Text className="font-medium text-white">Guardar objetivos</Text>
-              </Pressable>
-            </SurfaceCard>
-
-            <SurfaceCard title="Invitar por email" subtitle="Sumá un miembro al grupo">
-              <TextInput
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="correo@ejemplo.com"
-                placeholderTextColor="#94A3B8"
-                className="mt-2 rounded-2xl border border-ink-200 px-4 py-3 text-ink-900"
-              />
-              <Pressable onPress={onInvite} className="mt-3 items-center rounded-2xl bg-ink-900 py-3">
-                <Text className="font-medium text-white">Enviar invite</Text>
               </Pressable>
             </SurfaceCard>
           </>

@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import {
   DMSans_400Regular,
   DMSans_500Medium,
@@ -8,6 +9,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -35,6 +37,7 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <AppProviders>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F8FAFC' } }}>
@@ -49,5 +52,6 @@ export default function RootLayout() {
         />
       </Stack>
     </AppProviders>
+    </GestureHandlerRootView>
   );
 }

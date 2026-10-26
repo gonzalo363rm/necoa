@@ -1,3 +1,4 @@
+import { X } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   Alert,
@@ -13,9 +14,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
 
-import { TagGlyph, TAG_ICON_OPTIONS } from '@/src/components/TagGlyph';
+import { TAG_ICON_OPTIONS, TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
 import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useFamilyContext, useTags, useUpsertTag } from '@/src/hooks/useFamilyData';
@@ -84,7 +84,7 @@ export default function TagsScreen() {
         <View className="flex-row items-center justify-between px-5 pt-4">
           <Text className="text-2xl font-bold text-ink-900">Etiquetas</Text>
           <Pressable onPress={openCreate} className="rounded-full bg-brand-700 px-4 py-2">
-            <Text className="font-medium text-white">Nueva</Text>
+            <Text className="font-medium text-white">+ Nueva</Text>
           </Pressable>
         </View>
         <Text className="px-5 pt-2 text-sm text-ink-500">Tocá una etiqueta para editarla</Text>
@@ -124,13 +124,10 @@ export default function TagsScreen() {
         />
       </WebShell>
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
-        <KeyboardAvoidingView
-          className="flex-1"
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <View className="flex-1 justify-end bg-black/40">
-            <Pressable className="flex-1" onPress={() => setOpen(false)} />
+      <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}>
+        <View className="flex-1 justify-end">
+          <Pressable className="absolute inset-0 bg-black/40" onPress={() => setOpen(false)} />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <View
               className="max-h-[92%] rounded-t-3xl bg-white"
               style={{ paddingBottom: Math.max(insets.bottom, 12) }}
@@ -226,8 +223,8 @@ export default function TagsScreen() {
                 </Pressable>
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
     </SafeAreaView>
   );

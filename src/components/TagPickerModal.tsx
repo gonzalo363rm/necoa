@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { X } from 'lucide-react-native';
 
 import { TagGlyph } from '@/src/components/TagGlyph';
 import type { Tag } from '@/src/types/domain';
@@ -23,13 +24,18 @@ export function TagPickerModal({ visible, tags, selectedId, onSelect, onClose, o
   }, [query, tags]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end bg-black/30">
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+      <View className="flex-1 justify-end">
+        <Pressable className="absolute inset-0 bg-black/40" onPress={onClose} />
         <View className="h-[75%] rounded-t-3xl bg-white px-5 pb-8 pt-4">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-xl font-bold text-ink-900">Etiquetas</Text>
-            <Pressable onPress={onClose} className="rounded-full bg-ink-100 px-3 py-1.5">
-              <Text className="text-sm text-ink-700">Cerrar</Text>
+            <Pressable
+              onPress={onClose}
+              className="h-9 w-9 items-center justify-center rounded-full bg-ink-100"
+              hitSlop={8}
+            >
+              <X color="#334155" size={18} />
             </Pressable>
           </View>
           <TextInput

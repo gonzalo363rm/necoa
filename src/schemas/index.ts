@@ -82,6 +82,27 @@ export const familyNameSchema = z.object({
   name: z.string().trim().min(2, 'Nombre muy corto').max(60),
 });
 
+/** null = sin repetir; número >= 1 = cada N meses */
+const repeatMonthsSchema = z
+  .number()
+  .int()
+  .min(1, 'Mínimo 1 mes')
+  .nullable();
+
+export const listItemDraftSchema = z.object({
+  name: z.string().trim().min(1, 'Nombre requerido').max(80),
+  repeat_mode: z.enum(['inherit', 'custom']),
+  repeat_months: repeatMonthsSchema.optional().nullable(),
+});
+
+export const listCategorySchema = z.object({
+  name: z.string().trim().min(1, 'Nombre requerido').max(60),
+  repeat_months: repeatMonthsSchema,
+  items: z.array(listItemDraftSchema).optional(),
+});
+
 export type TransactionFormValues = z.infer<typeof transactionSchema>;
 export type BudgetGoalsFormValues = z.infer<typeof budgetGoalsSchema>;
 export type TagFormValues = z.infer<typeof tagSchema>;
+export type ListCategoryFormValues = z.infer<typeof listCategorySchema>;
+export type ListItemDraftValues = z.infer<typeof listItemDraftSchema>;

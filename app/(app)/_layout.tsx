@@ -1,4 +1,4 @@
-import { ChartPie, Home, Plus, Receipt, Users } from 'lucide-react-native';
+import { ChartPie, Home, ListChecks, Plus, Receipt } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ export default function AppLayout() {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#E2E8F0',
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
       }}
     >
       <Tabs.Screen
@@ -61,6 +61,13 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="lists"
+        options={{
+          title: 'Listas',
+          tabBarIcon: ({ color, size }) => <ListChecks color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="charts"
         options={{
           title: 'Gráficos',
@@ -70,8 +77,7 @@ export default function AppLayout() {
       <Tabs.Screen
         name="family"
         options={{
-          title: 'Familia',
-          tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
+          href: null,
         }}
       />
       <Tabs.Screen

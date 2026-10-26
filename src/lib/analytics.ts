@@ -50,6 +50,24 @@ export function monthSpanRange(anchorMonth: string, monthsBack: number) {
   };
 }
 
+function monthLabel(month: string, months: string[]): string {
+  const d = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
+  const crossesYear = months[0]?.slice(0, 4) !== months[months.length - 1]?.slice(0, 4);
+  return format(d, crossesYear ? 'MMM yy' : 'MMM', { locale: es });
+}
+
+/** Month keys (yyyy-MM) touched by an inclusive yyyy-MM-dd range. */
+export function monthKeysBetween(from: string, to: string): string[] {
+  const keys: string[] = [];
+  let cursor = parse(`${from.slice(0, 7)}-01`, 'yyyy-MM-dd', new Date());
+  const lastKey = to.slice(0, 7);
+  while (format(cursor, 'yyyy-MM') <= lastKey) {
+    keys.push(format(cursor, 'yyyy-MM'));
+    cursor = addMonths(cursor, 1);
+  }
+  return keys;
+}
+
 export function expensesByTag(transactions: Transaction[], limit = 8): Slice[] {
   const map = new Map<string, { label: string; color: string; amount: number }>();
   let total = 0;
@@ -137,14 +155,11 @@ export function monthlyExpenseTotals(transactions: Transaction[], months: string
     if (!map.has(key)) continue;
     map.set(key, (map.get(key) ?? 0) + Number(tx.amount));
   }
-  return months.map((month) => {
-    const d = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
-    return {
-      month,
-      label: format(d, 'MMM', { locale: es }),
-      amount: map.get(month) ?? 0,
-    };
-  });
+  return months.map((month) => ({
+    month,
+    label: monthLabel(month, months),
+    amount: map.get(month) ?? 0,
+  }));
 }
 
 export function monthlyTotalsByTag(
@@ -188,14 +203,11 @@ export function monthlyTotalsByTag(
     label: row.label,
     color: row.color,
     sum: row.sum,
-    points: months.map((month) => {
-      const d = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
-      return {
-        month,
-        label: format(d, 'MMM', { locale: es }),
-        amount: row.byMonth.get(month) ?? 0,
-      };
-    }),
+    points: months.map((month) => ({
+      month,
+      label: monthLabel(month, months),
+      amount: row.byMonth.get(month) ?? 0,
+    })),
   }));
 
   series.sort((a, b) => b.sum - a.sum);
