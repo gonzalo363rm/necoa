@@ -40,14 +40,42 @@ export async function clearPendingInviteToken() {
   await AsyncStorage.removeItem(PENDING_INVITE_KEY);
 }
 
-export async function acceptFamilyInvite(token: string): Promise<Family> {
+/** Thrown when the user owns another group with members and must pick a successor first. */
+export class OwnerHandoffRequiredError extends Error {
+  constructor(public token: string) {
+    super('Elegí quién queda a cargo de tu grupo actual');
+    this.name = 'OwnerHandoffRequiredError';
+  }
+}
+
+export type HandoffCandidate = {
+  family_id: string;
+  family_name: string;
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+};
+
+export async function acceptFamilyInvite(token: string, newOwnerId?: string | null): Promise<Family> {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase no configurado');
   }
-  const { data, error } = await supabase.rpc('accept_family_invite', { invite_token: token });
-  if (error) throw error;
+  const { data, error } = await supabase.rpc('accept_family_invite', {
+    invite_token: token,
+    new_owner_id: newOwnerId ?? null,
+  });
+  if (error) {
+    if (error.message?.includes('OWNER_HANDOFF_REQUIRED')) throw new OwnerHandoffRequiredError(token);
+    throw error;
+  }
   await clearPendingInviteToken();
   return data as Family;
+}
+
+export async function fetchHandoffCandidates(token: string): Promise<HandoffCandidate[]> {
+  const { data, error } = await supabase.rpc('invite_owner_handoff_candidates', { invite_token: token });
+  if (error) throw error;
+  return (data ?? []) as HandoffCandidate[];
 }
 
 /** Accept token now if logged in; otherwise park it for after login. */

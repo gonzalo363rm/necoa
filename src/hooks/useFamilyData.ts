@@ -455,4 +455,43 @@ export function useInviteMember(familyId: string | null) {
   });
 }
 
+export function useLeaveFamily(familyId: string | null) {
+  const qc = useQueryClient();
+  const setActiveFamilyId = useSessionStore((s) => s.setActiveFamilyId);
+  return useMutation({
+    mutationFn: async (newOwnerId?: string | null) => {
+      if (!isSupabaseConfigured) throw new Error('No disponible en modo demo');
+      if (!familyId) throw new Error('Sin grupo');
+      const { error } = await supabase.rpc('leave_family', {
+        fid: familyId,
+        new_owner_id: newOwnerId ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      setActiveFamilyId(null);
+      await qc.invalidateQueries();
+    },
+  });
+}
+
+export function useRemoveMember(familyId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberUserId: string) => {
+      if (!isSupabaseConfigured) throw new Error('No disponible en modo demo');
+      if (!familyId) throw new Error('Sin grupo');
+      const { error } = await supabase.rpc('remove_family_member', {
+        fid: familyId,
+        member_user_id: memberUserId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['members', familyId] });
+      qc.invalidateQueries({ queryKey: ['families'] });
+    },
+  });
+}
+
 export { demoUser };

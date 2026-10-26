@@ -3,7 +3,7 @@ import { Redirect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '@/src/hooks/useAuth';
-import { consumePendingInvite } from '@/src/lib/invites';
+import { consumePendingInvite, OwnerHandoffRequiredError } from '@/src/lib/invites';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { useSessionStore } from '@/src/stores';
 
@@ -12,6 +12,7 @@ export default function Index() {
   const params = useLocalSearchParams<{ invite?: string }>();
   const setActiveFamilyId = useSessionStore((s) => s.setActiveFamilyId);
   const [ready, setReady] = useState(false);
+  const [handoffToken, setHandoffToken] = useState<string | null>(null);
 
   const inviteToken = typeof params.invite === 'string' ? params.invite : null;
 
@@ -27,8 +28,9 @@ export default function Index() {
           if (family?.id && !cancelled) {
             setActiveFamilyId(family.id);
           }
-        } catch {
-          // leave pending token; user can open invite again
+        } catch (e) {
+          if (e instanceof OwnerHandoffRequiredError && !cancelled) setHandoffToken(e.token);
+          // otherwise leave pending token; user can open invite again
         }
       }
       if (!cancelled) setReady(true);
@@ -40,8 +42,8 @@ export default function Index() {
     };
   }, [loading, session, inviteToken, setActiveFamilyId]);
 
-  if (inviteToken) {
-    return <Redirect href={{ pathname: '/invite', params: { token: inviteToken } }} />;
+  if (inviteToken || handoffToken) {
+    return <Redirect href={{ pathname: '/invite', params: { token: (inviteToken ?? handoffToken)! } }} />;
   }
 
   if (loading || !ready) {

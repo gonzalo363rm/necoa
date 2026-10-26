@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { signInWithGoogle } from '@/src/lib/auth';
-import { consumePendingInvite } from '@/src/lib/invites';
+import { consumePendingInvite, OwnerHandoffRequiredError } from '@/src/lib/invites';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { useSessionStore } from '@/src/stores';
 
@@ -22,6 +22,10 @@ export default function LoginScreen() {
         const invited = await consumePendingInvite();
         if (invited?.id) setActiveFamilyId(invited.id);
       } catch (inviteError) {
+        if (inviteError instanceof OwnerHandoffRequiredError) {
+          router.replace({ pathname: '/invite', params: { token: inviteError.token } });
+          return;
+        }
         setError(
           inviteError instanceof Error
             ? inviteError.message
