@@ -494,4 +494,23 @@ export function useRemoveMember(familyId: string | null) {
   });
 }
 
+export function useTransferOwnership(familyId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (newOwnerId: string) => {
+      if (!isSupabaseConfigured) throw new Error('No disponible en modo demo');
+      if (!familyId) throw new Error('Sin grupo');
+      const { error } = await supabase.rpc('transfer_family_ownership', {
+        fid: familyId,
+        new_owner_id: newOwnerId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['members', familyId] });
+      qc.invalidateQueries({ queryKey: ['families'] });
+    },
+  });
+}
+
 export { demoUser };

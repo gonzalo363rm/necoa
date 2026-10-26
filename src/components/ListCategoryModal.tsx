@@ -14,6 +14,7 @@ import { Plus, Trash2, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RepeatPicker, type RepeatValue } from '@/src/components/RepeatPicker';
+import { confirmAsync } from '@/src/lib/confirm';
 import { listCategorySchema, listItemDraftSchema } from '@/src/schemas';
 import type { ListCategory } from '@/src/types/domain';
 
@@ -40,6 +41,7 @@ type Props = {
   onSaveItems: (
     items: { name: string; repeat_mode: 'inherit' | 'custom'; repeat_months: number | null }[],
   ) => Promise<void>;
+  onDelete?: () => Promise<void>;
 };
 
 function newDraft(inheritDefault = true): ItemDraft {
@@ -88,6 +90,7 @@ export function ListCategoryModal({
   onSaveCreate,
   onSaveEdit,
   onSaveItems,
+  onDelete,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
@@ -115,6 +118,25 @@ export function ListCategoryModal({
 
   const title =
     mode === 'create' ? 'Nueva categoría' : mode === 'edit' ? 'Editar categoría' : 'Agregar items';
+
+  function addItemRow() {
+    const emptyIndex = items.findIndex((d) => !d.name.trim());
+    if (emptyIndex >= 0) {
+      Alert.alert('Items', `Completá el nombre del item ${emptyIndex + 1} antes de agregar otro`);
+      return;
+    }
+    setItems((curr) => [...curr, newDraft(true)]);
+  }
+
+  function removeItemRow(index: number) {
+    setItems((curr) => {
+      if (curr.length <= 1) {
+        // En create/add-items dejamos una fila vacía en lugar de cero
+        return [newDraft(true)];
+      }
+      return curr.filter((_, i) => i !== index);
+    });
+  }
 
   async function onSave() {
     try {
@@ -185,115 +207,140 @@ export function ListCategoryModal({
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View className="flex-1 justify-end">
         <Pressable className="absolute inset-0 bg-black/40" onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View
-          className="max-h-[90%] rounded-t-3xl bg-white"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="h-[85%]"
         >
-          <View className="flex-row items-center justify-between border-b border-ink-100 px-5 py-4">
-            <Text className="text-xl font-bold text-ink-900">{title}</Text>
-            <Pressable
-              onPress={onClose}
-              className="h-9 w-9 items-center justify-center rounded-full bg-ink-100"
-              hitSlop={8}
-            >
-              <X color="#334155" size={18} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerClassName="gap-4 px-5 py-4"
-            showsVerticalScrollIndicator={false}
+          <View
+            className="flex-1 rounded-t-3xl bg-white"
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
           >
-            {mode !== 'add-items' ? (
-              <>
-                <View>
-                  <Text className="mb-1 text-xs font-medium text-ink-500">Nombre</Text>
-                  <TextInput
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Ej. Supermercado"
-                    placeholderTextColor="#94A3B8"
-                    className="rounded-2xl border border-ink-200 px-4 py-3 text-ink-900"
-                    autoFocus={mode === 'create' || mode === 'edit'}
-                  />
-                </View>
-                <View>
-                  <Text className="mb-2 text-xs font-medium text-ink-500">
-                    Repetición por defecto de la categoría
-                  </Text>
-                  <RepeatPicker value={catRepeat} onChange={setCatRepeat} />
-                </View>
-              </>
-            ) : null}
+            <View className="flex-row items-center justify-between border-b border-ink-100 px-5 py-4">
+              <Text className="text-xl font-bold text-ink-900">{title}</Text>
+              <Pressable
+                onPress={onClose}
+                className="h-9 w-9 items-center justify-center rounded-full bg-ink-100"
+                hitSlop={8}
+              >
+                <X color="#334155" size={18} />
+              </Pressable>
+            </View>
 
-            {mode !== 'edit' ? (
-              <View>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <Text className="text-xs font-medium text-ink-500">Items</Text>
-                  <Pressable
-                    onPress={() => setItems((curr) => [...curr, newDraft(true)])}
-                    className="flex-row items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5"
-                  >
-                    <Plus color="#0F766E" size={14} />
-                    <Text className="text-xs font-medium text-brand-700">Agregar</Text>
-                  </Pressable>
-                </View>
-
-                {items.map((item, index) => (
-                  <View
-                    key={item.key}
-                    className="mb-3 rounded-2xl border border-ink-100 bg-ink-50 p-3"
-                  >
-                    <View className="flex-row items-center gap-2">
-                      <TextInput
-                        value={item.name}
-                        onChangeText={(t) =>
-                          setItems((curr) =>
-                            curr.map((row, i) => (i === index ? { ...row, name: t } : row)),
-                          )
-                        }
-                        placeholder={`Item ${index + 1}`}
-                        placeholderTextColor="#94A3B8"
-                        className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-ink-900"
-                      />
-                      <Pressable
-                        onPress={() => setItems((curr) => curr.filter((_, i) => i !== index))}
-                        className="rounded-full bg-white p-2"
-                        disabled={items.length <= 1}
-                      >
-                        <Trash2 color={items.length <= 1 ? '#CBD5E1' : '#DC2626'} size={16} />
-                      </Pressable>
-                    </View>
-                    <View className="mt-2">
-                      <RepeatPicker
-                        compact
-                        allowInherit
-                        value={item.repeat}
-                        onChange={(next) =>
-                          setItems((curr) =>
-                            curr.map((row, i) => (i === index ? { ...row, repeat: next } : row)),
-                          )
-                        }
-                      />
-                    </View>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-          </ScrollView>
-
-          <View className="border-t border-ink-100 px-5 pt-3">
-            <Pressable
-              onPress={onSave}
-              disabled={saving}
-              className="items-center rounded-2xl bg-brand-700 py-3.5 active:opacity-90"
+            <ScrollView
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+              contentContainerClassName="gap-4 px-5 py-4"
+              showsVerticalScrollIndicator={false}
             >
-              <Text className="font-semibold text-white">{saving ? 'Guardando…' : 'Guardar'}</Text>
-            </Pressable>
+              {mode !== 'add-items' ? (
+                <>
+                  <View>
+                    <Text className="mb-1 text-xs font-medium text-ink-500">Nombre</Text>
+                    <TextInput
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Ej. Supermercado"
+                      placeholderTextColor="#94A3B8"
+                      className="rounded-2xl border border-ink-200 px-4 py-3 text-ink-900"
+                      autoFocus={mode === 'create' || mode === 'edit'}
+                    />
+                  </View>
+                  <View>
+                    <Text className="mb-2 text-xs font-medium text-ink-500">
+                      Repetición por defecto de la categoría
+                    </Text>
+                    <RepeatPicker value={catRepeat} onChange={setCatRepeat} />
+                  </View>
+                </>
+              ) : null}
+
+              {mode !== 'edit' ? (
+                <View>
+                  <View className="mb-2 flex-row items-center justify-between">
+                    <Text className="text-xs font-medium text-ink-500">Items</Text>
+                    <Pressable
+                      onPress={addItemRow}
+                      className="flex-row items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5"
+                    >
+                      <Plus color="#0F766E" size={14} />
+                      <Text className="text-xs font-medium text-brand-700">Agregar</Text>
+                    </Pressable>
+                  </View>
+
+                  {items.map((item, index) => (
+                    <View
+                      key={item.key}
+                      className="mb-3 rounded-2xl border border-ink-100 bg-ink-50 p-3"
+                    >
+                      <View className="flex-row items-center gap-2">
+                        <TextInput
+                          value={item.name}
+                          onChangeText={(t) =>
+                            setItems((curr) =>
+                              curr.map((row, i) => (i === index ? { ...row, name: t } : row)),
+                            )
+                          }
+                          placeholder={`Item ${index + 1}`}
+                          placeholderTextColor="#94A3B8"
+                          className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-ink-900"
+                        />
+                        <Pressable
+                          onPress={() => removeItemRow(index)}
+                          className="rounded-full bg-white p-2"
+                          accessibilityLabel="Eliminar item"
+                        >
+                          <Trash2 color="#DC2626" size={16} />
+                        </Pressable>
+                      </View>
+                      <View className="mt-2">
+                        <RepeatPicker
+                          compact
+                          allowInherit
+                          value={item.repeat}
+                          onChange={(next) =>
+                            setItems((curr) =>
+                              curr.map((row, i) => (i === index ? { ...row, repeat: next } : row)),
+                            )
+                          }
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </ScrollView>
+
+            <View className="gap-2 border-t border-ink-100 px-5 pt-3">
+              <Pressable
+                onPress={onSave}
+                disabled={saving}
+                className="items-center rounded-2xl bg-brand-700 py-3.5 active:opacity-90"
+              >
+                <Text className="font-semibold text-white">{saving ? 'Guardando…' : 'Guardar'}</Text>
+              </Pressable>
+              {mode === 'edit' && onDelete ? (
+                <Pressable
+                  onPress={async () => {
+                    const ok = await confirmAsync(
+                      'Eliminar categoría',
+                      'Se eliminan la categoría y todos sus items de todos los meses.',
+                      'Eliminar',
+                    );
+                    if (!ok) return;
+                    try {
+                      await onDelete();
+                    } catch (e) {
+                      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar');
+                    }
+                  }}
+                  disabled={saving}
+                  className="items-center rounded-2xl border border-ink-200 py-3 active:opacity-90"
+                >
+                  <Text className="font-medium text-danger">Eliminar categoría</Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
-        </View>
         </KeyboardAvoidingView>
       </View>
     </Modal>

@@ -9,6 +9,7 @@ type Props = {
   onToggleDone: (item: ListItemWithEntry) => void;
   onToggleSelect: (entryId: string) => void;
   onEdit: (item: ListItemWithEntry) => void;
+  onDelete: (item: ListItemWithEntry) => void;
   onReorder: (ordered: ListItemWithEntry[]) => void;
 };
 
@@ -18,6 +19,7 @@ export function CategoryItemsList({
   onToggleDone,
   onToggleSelect,
   onEdit,
+  onDelete,
   onReorder,
 }: Props) {
   return (
@@ -25,7 +27,7 @@ export function CategoryItemsList({
       data={items}
       keyExtractor={(item) => item.id}
       scrollEnabled={false}
-      activationDistance={12}
+      activationDistance={6}
       onDragEnd={({ data }) => onReorder(data)}
       renderItem={({ item, drag, isActive }) => (
         <ScaleDecorator>
@@ -36,6 +38,7 @@ export function CategoryItemsList({
             onToggleDone={() => onToggleDone(item)}
             onToggleSelect={() => item.entry && onToggleSelect(item.entry.id)}
             onEdit={() => onEdit(item)}
+            onDelete={() => onDelete(item)}
             onDragHandleLongPress={drag}
           />
         </ScaleDecorator>

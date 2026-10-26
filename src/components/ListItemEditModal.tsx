@@ -13,6 +13,7 @@ import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatRepeatLabel, RepeatPicker, type RepeatValue } from '@/src/components/RepeatPicker';
+import { confirmAsync } from '@/src/lib/confirm';
 import { listItemDraftSchema } from '@/src/schemas';
 import type { ListItemWithEntry } from '@/src/types/domain';
 
@@ -28,6 +29,7 @@ type Props = {
     repeat_mode: 'inherit' | 'custom';
     repeat_months: number | null;
   }) => Promise<void>;
+  onDelete?: () => Promise<void>;
 };
 
 export function ListItemEditModal({
@@ -37,6 +39,7 @@ export function ListItemEditModal({
   saving,
   onClose,
   onSave,
+  onDelete,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
@@ -71,6 +74,21 @@ export function ListItemEditModal({
       await onSave({ ...parsed.data, repeat_months: parsed.data.repeat_months ?? null });
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo guardar');
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDelete) return;
+    const ok = await confirmAsync(
+      'Eliminar item',
+      'Se elimina de todos los meses. Podés volver a crearlo después.',
+      'Eliminar',
+    );
+    if (!ok) return;
+    try {
+      await onDelete();
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar');
     }
   }
 
@@ -122,6 +140,16 @@ export function ListItemEditModal({
               >
                 <Text className="font-semibold text-white">{saving ? 'Guardando…' : 'Guardar'}</Text>
               </Pressable>
+
+              {onDelete ? (
+                <Pressable
+                  onPress={handleDelete}
+                  disabled={saving}
+                  className="items-center rounded-2xl border border-ink-200 py-3 active:opacity-90"
+                >
+                  <Text className="font-medium text-danger">Eliminar item</Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </KeyboardAvoidingView>

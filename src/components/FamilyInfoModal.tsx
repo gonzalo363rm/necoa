@@ -38,11 +38,19 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    title: 'Pasar el grupo',
+    points: [
+      'Solo el creador puede hacerlo, con «Pasar el grupo», abajo de todo.',
+      'Elegís a otro miembro y esa persona queda como creadora. Vos seguís en el grupo como miembro.',
+      'No hace falta salir ni aceptar otra invitación para pasar el rol.',
+    ],
+  },
+  {
     title: 'Salir del grupo',
     points: [
       'Cualquier miembro puede salir cuando quiera, sin pedirle permiso al creador. Se hace desde «Salir del grupo», abajo de todo.',
       'Dejás de ver el grupo en el momento. Lo que cargaste queda guardado en el grupo.',
-      'Si sos el creador, primero elegís a quién pasarle el grupo.',
+      'Si sos el creador, primero elegís a quién pasarle el grupo y después salís.',
       'Si estás solo en el grupo, no hace falta salir y el botón no aparece.',
       'Al salir, la app te devuelve tu grupo personal anterior si tenías uno, o te crea uno nuevo.',
     ],

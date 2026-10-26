@@ -31,7 +31,7 @@ export default function InviteScreen() {
     if (family?.id) setActiveFamilyId(family.id);
     setHandoff(null);
     setMessage('¡Ya estás en el grupo familiar!');
-    setTimeout(() => router.replace('/(app)/family'), 800);
+    setTimeout(() => router.replace('/family'), 800);
   }
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function InviteScreen() {
         }
         setMessage(e instanceof Error ? e.message : 'No se pudo aceptar la invitación');
         setTimeout(() => {
-          if (!cancelled) router.replace(session ? '/(app)/family' : '/(auth)/login');
+          if (!cancelled) router.replace(session ? '/family' : '/(auth)/login');
         }, 2800);
       }
     }
@@ -152,7 +152,7 @@ export default function InviteScreen() {
           <Pressable
             onPress={async () => {
               await clearPendingInviteToken();
-              router.replace('/(app)/family');
+              router.replace('/family');
             }}
             className="mt-2 items-center py-3"
           >

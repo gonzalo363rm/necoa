@@ -55,6 +55,14 @@ export default function RootLayout() {
         <Stack.Screen name="invite" />
         <Stack.Screen name="(app)" />
         <Stack.Screen
+          name="family"
+          options={{ headerShown: true, title: 'Familia', headerShadowVisible: false }}
+        />
+        <Stack.Screen
+          name="tags"
+          options={{ headerShown: true, title: 'Etiquetas', headerShadowVisible: false }}
+        />
+        <Stack.Screen
           name="add-transaction"
           options={{ presentation: 'modal', headerShown: true, title: 'Nuevo movimiento' }}
         />

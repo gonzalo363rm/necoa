@@ -13,7 +13,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PageTitle } from '@/src/components/PageTitle';
 import { TAG_ICON_OPTIONS, TagGlyph } from '@/src/components/TagGlyph';
@@ -80,19 +81,25 @@ export default function TagsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Etiquetas',
+          headerShown: true,
+          headerShadowVisible: false,
+          headerRight: () => (
+            <Pressable onPress={openCreate} className="mr-1 rounded-full bg-brand-700 px-3 py-1.5">
+              <Text className="text-sm font-medium text-white">+ Nueva</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <PageTitle title="Etiquetas" />
       <WebShell>
-        <View className="flex-row items-center justify-between px-5 pt-4">
-          <Text className="text-2xl font-bold text-ink-900">Etiquetas</Text>
-          <Pressable onPress={openCreate} className="rounded-full bg-brand-700 px-4 py-2">
-            <Text className="font-medium text-white">+ Nueva</Text>
-          </Pressable>
-        </View>
-        <Text className="px-5 pt-2 text-sm text-ink-500">Tocá una etiqueta para editarla</Text>
+        <Text className="px-5 pt-3 text-sm text-ink-500">Tocá una etiqueta para editarla</Text>
 
         <FlatList
-          className="mt-4"
+          className="mt-3 flex-1 bg-ink-50"
           contentContainerClassName="px-5 pb-28"
           data={tagsQuery.data ?? []}
           keyExtractor={(item) => item.id}
@@ -228,6 +235,6 @@ export default function TagsScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }

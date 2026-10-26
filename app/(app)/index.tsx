@@ -101,13 +101,13 @@ export default function HomeScreen() {
             </View>
             <View className="mt-1 flex-row items-center gap-2">
               <Pressable
-                onPress={() => router.push('/(app)/tags')}
+                onPress={() => router.push('/tags')}
                 className="h-10 w-10 items-center justify-center rounded-full border border-ink-100 bg-white"
               >
                 <Tags color="#0F766E" size={18} />
               </Pressable>
               <Pressable
-                onPress={() => router.push('/(app)/family')}
+                onPress={() => router.push('/family')}
                 className="h-10 flex-row items-center gap-1.5 rounded-full bg-brand-700 px-3 active:opacity-90"
               >
                 <Users color="#fff" size={16} />
@@ -123,7 +123,7 @@ export default function HomeScreen() {
 
           {membersQuery.isSuccess && memberCount <= 1 ? (
             <Pressable
-              onPress={() => router.push('/(app)/family')}
+              onPress={() => router.push('/family')}
               className="mt-4 flex-row items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 active:opacity-90"
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-700">

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CheckSquare, GripVertical, Pencil, Square } from 'lucide-react-native';
+import { CheckSquare, GripVertical, Pencil, Square, Trash2 } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatRepeatLabel } from '@/src/components/RepeatPicker';
@@ -12,6 +12,7 @@ type Props = {
   onToggleDone: () => void;
   onToggleSelect: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
   /** Native: long-press para iniciar drag. */
   onDragHandleLongPress?: () => void;
   /** Web u otros: reemplaza el asa por defecto. */
@@ -25,6 +26,7 @@ export function ListItemRow({
   onToggleDone,
   onToggleSelect,
   onEdit,
+  onDelete,
   onDragHandleLongPress,
   dragHandle,
 }: Props) {
@@ -61,9 +63,19 @@ export function ListItemRow({
           <Pencil color="#64748B" size={14} />
         </Pressable>
       ) : null}
+      {onDelete ? (
+        <Pressable onPress={onDelete} hitSlop={8} className="rounded-full bg-ink-50 p-1.5">
+          <Trash2 color="#DC2626" size={14} />
+        </Pressable>
+      ) : null}
       {dragHandle ?? (
-        <Pressable onLongPress={onDragHandleLongPress} delayLongPress={120} hitSlop={8} className="p-1">
-          <GripVertical color={isActive ? '#0F766E' : '#94A3B8'} size={18} />
+        <Pressable
+          onLongPress={onDragHandleLongPress}
+          delayLongPress={80}
+          hitSlop={12}
+          className="p-2"
+        >
+          <GripVertical color={isActive ? '#0F766E' : '#94A3B8'} size={20} />
         </Pressable>
       )}
     </View>

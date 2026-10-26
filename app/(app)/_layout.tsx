@@ -74,18 +74,6 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => <ChartPie color={color} size={size} />,
         }}
       />
-      <Tabs.Screen
-        name="family"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="tags"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }

@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode, useState } from 'react';
 
+import { ConfirmProvider } from '@/src/providers/ConfirmProvider';
+
 type Props = {
   children: ReactNode;
 };
@@ -18,5 +20,9 @@ export function AppProviders({ children }: Props) {
       }),
   );
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <ConfirmProvider>{children}</ConfirmProvider>
+    </QueryClientProvider>
+  );
 }

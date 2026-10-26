@@ -15,7 +15,6 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   RefreshControl,
   Switch,
@@ -38,12 +37,14 @@ import { useFamilyContext } from '@/src/hooks/useFamilyData';
 import {
   useAddListItems,
   useArchiveListItems,
+  useDeleteListCategory,
   useListMonth,
   useReorderListItems,
   useSaveListCategory,
   useSetEntriesStatus,
   useUpdateListItem,
 } from '@/src/hooks/useLists';
+import { confirmAsync } from '@/src/lib/confirm';
 import { useFiltersStore } from '@/src/stores';
 import type { ListCategoryWithItems, ListItemWithEntry } from '@/src/types/domain';
 
@@ -76,6 +77,7 @@ export default function ListsScreen() {
   const addItems = useAddListItems(familyId, month);
   const setStatus = useSetEntriesStatus(familyId);
   const archiveItems = useArchiveListItems(familyId);
+  const deleteCategory = useDeleteListCategory(familyId);
   const reorderItems = useReorderListItems(familyId);
   const updateItem = useUpdateListItem(familyId, month);
 
@@ -84,7 +86,6 @@ export default function ListsScreen() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [modal, setModal] = useState<ModalState>(null);
   const [editingItem, setEditingItem] = useState<ListItemWithEntry | null>(null);
-  const [deleteSheet, setDeleteSheet] = useState(false);
   const [localItems, setLocalItems] = useState<Record<string, ListItemWithEntry[]>>({});
 
   const monthDate = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
@@ -168,17 +169,49 @@ export default function ListsScreen() {
     return 'some';
   }
 
-  async function deleteThisMonth() {
+  async function hideSelectionThisMonth() {
+    const ok = await confirmAsync(
+      'Ocultar este mes',
+      `Los ${selected.size} seleccionados dejan de aparecer solo en este mes.`,
+      'Ocultar',
+    );
+    if (!ok) return;
     await setStatus.mutateAsync({ entryIds: selectedEntryIds, status: 'skipped' });
     setSelected(new Set());
-    setDeleteSheet(false);
   }
 
-  async function deleteAllMonths() {
+  async function deleteSelectionAllMonths() {
+    const ok = await confirmAsync(
+      'Eliminar selección',
+      `Se eliminan ${selected.size} item${selected.size === 1 ? '' : 's'} de todos los meses.`,
+      'Eliminar',
+    );
+    if (!ok) return;
     const itemIds = [...new Set(selectedEntries.map((i) => i.id))];
     await archiveItems.mutateAsync(itemIds);
     setSelected(new Set());
-    setDeleteSheet(false);
+  }
+
+  async function deleteItem(item: ListItemWithEntry) {
+    const ok = await confirmAsync(
+      'Eliminar item',
+      `"${item.name}" se elimina de todos los meses.`,
+      'Eliminar',
+    );
+    if (!ok) return;
+    await archiveItems.mutateAsync([item.id]);
+    if (editingItem?.id === item.id) setEditingItem(null);
+  }
+
+  async function deleteCategoryById(categoryId: string, categoryName: string) {
+    const ok = await confirmAsync(
+      'Eliminar categoría',
+      `"${categoryName}" y todos sus items se eliminan de todos los meses.`,
+      'Eliminar',
+    );
+    if (!ok) return;
+    await deleteCategory.mutateAsync(categoryId);
+    if (modal && 'categoryId' in modal && modal.categoryId === categoryId) setModal(null);
   }
 
   function generatePayment() {
@@ -208,7 +241,12 @@ export default function ListsScreen() {
 
   const modalMode: ListCategoryModalMode = modal?.mode ?? 'create';
   const saving =
-    saveCategory.isPending || addItems.isPending || setStatus.isPending || updateItem.isPending;
+    saveCategory.isPending ||
+    addItems.isPending ||
+    setStatus.isPending ||
+    updateItem.isPending ||
+    deleteCategory.isPending ||
+    archiveItems.isPending;
 
   const editingItemCategory = useMemo(() => {
     if (!editingItem) return null;
@@ -313,6 +351,12 @@ export default function ListsScreen() {
                       >
                         <Pencil color="#64748B" size={16} />
                       </Pressable>
+                      <Pressable
+                        onPress={() => deleteCategoryById(cat.id, cat.name)}
+                        className="rounded-full bg-ink-50 p-2"
+                      >
+                        <Trash2 color="#DC2626" size={16} />
+                      </Pressable>
                       <Pressable onPress={() => toggleExpand(cat.id)} className="p-1">
                         {open ? (
                           <ChevronUp color="#64748B" size={18} />
@@ -335,6 +379,7 @@ export default function ListsScreen() {
                             onToggleDone={toggleItemDone}
                             onToggleSelect={toggleSelect}
                             onEdit={setEditingItem}
+                            onDelete={deleteItem}
                             onReorder={(data) => {
                               setLocalItems((curr) => ({ ...curr, [cat.id]: data }));
                               reorderItems.mutate(data.map((i) => i.id));
@@ -357,8 +402,14 @@ export default function ListsScreen() {
             </Text>
             <View className="flex-row flex-wrap justify-center gap-2">
               <Pressable
-                onPress={() => setDeleteSheet(true)}
-                className="rounded-full border border-danger/30 bg-red-50 px-3 py-2"
+                onPress={hideSelectionThisMonth}
+                className="rounded-full border border-ink-200 bg-ink-50 px-3 py-2"
+              >
+                <Text className="text-xs font-medium text-ink-800">Solo este mes</Text>
+              </Pressable>
+              <Pressable
+                onPress={deleteSelectionAllMonths}
+                className="rounded-full border border-ink-200 bg-red-50 px-3 py-2"
               >
                 <Text className="text-xs font-medium text-danger">Eliminar</Text>
               </Pressable>
@@ -399,13 +450,21 @@ export default function ListsScreen() {
           await addItems.mutateAsync({ categoryId: modal.categoryId, items });
           setModal(null);
         }}
+        onDelete={
+          modal?.mode === 'edit'
+            ? async () => {
+                await deleteCategory.mutateAsync(modal.categoryId);
+                setModal(null);
+              }
+            : undefined
+        }
       />
 
       <ListItemEditModal
         visible={editingItem !== null}
         item={editingItem}
         categoryRepeatMonths={editingItemCategory?.repeat_months ?? null}
-        saving={updateItem.isPending}
+        saving={updateItem.isPending || archiveItems.isPending}
         onClose={() => setEditingItem(null)}
         onSave={async (payload) => {
           if (!editingItem) return;
@@ -417,39 +476,15 @@ export default function ListsScreen() {
           });
           setEditingItem(null);
         }}
+        onDelete={
+          editingItem
+            ? async () => {
+                await archiveItems.mutateAsync([editingItem.id]);
+                setEditingItem(null);
+              }
+            : undefined
+        }
       />
-
-      <Modal visible={deleteSheet} transparent animationType="fade" onRequestClose={() => setDeleteSheet(false)}>
-        <View className="flex-1 justify-end">
-          <Pressable className="absolute inset-0 bg-black/40" onPress={() => setDeleteSheet(false)} />
-          <View className="rounded-t-3xl bg-white px-5 pb-10 pt-5">
-            <View className="mb-4 items-center">
-              <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-red-50">
-                <Trash2 color="#DC2626" size={22} />
-              </View>
-              <Text className="text-lg font-bold text-ink-900">Eliminar selección</Text>
-              <Text className="mt-1 text-center text-sm text-ink-500">
-                ¿Solo de este mes o de todos los meses?
-              </Text>
-            </View>
-            <Pressable
-              onPress={deleteThisMonth}
-              className="mb-2 items-center rounded-2xl border border-ink-200 py-3"
-            >
-              <Text className="font-medium text-ink-800">Solo este mes</Text>
-            </Pressable>
-            <Pressable
-              onPress={deleteAllMonths}
-              className="mb-2 items-center rounded-2xl bg-danger py-3"
-            >
-              <Text className="font-medium text-white">Todos los meses</Text>
-            </Pressable>
-            <Pressable onPress={() => setDeleteSheet(false)} className="items-center py-3">
-              <Text className="text-ink-500">Cancelar</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
