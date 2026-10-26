@@ -14,6 +14,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 
 import { DateField } from '@/src/components/DateField';
+import { PageTitle } from '@/src/components/PageTitle';
 import { TagGlyph, TAG_ICON_OPTIONS } from '@/src/components/TagGlyph';
 import { TagPickerModal } from '@/src/components/TagPickerModal';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -245,6 +246,7 @@ export default function AddTransactionModal() {
     return (
       <>
         <Stack.Screen options={{ title: 'Editar movimiento', headerShadowVisible: false }} />
+        <PageTitle title="Editar movimiento" />
         <View className="flex-1 items-center justify-center bg-ink-50">
           <ActivityIndicator color="#0D9488" />
         </View>
@@ -257,6 +259,7 @@ export default function AddTransactionModal() {
       <Stack.Screen
         options={{ title: isEditing ? 'Editar movimiento' : 'Nuevo movimiento', headerShadowVisible: false }}
       />
+      <PageTitle title={isEditing ? 'Editar movimiento' : 'Nuevo movimiento'} />
       <ScrollView className="flex-1 bg-ink-50" contentContainerClassName="px-5 pb-10 pt-4">
         <View className="mb-3 flex-row gap-2">
           {([

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { useAuth } from '@/src/hooks/useAuth';
 import { consumePendingInvite, OwnerHandoffRequiredError } from '@/src/lib/invites';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
@@ -49,6 +50,7 @@ export default function Index() {
   if (loading || !ready) {
     return (
       <View className="flex-1 items-center justify-center bg-ink-50">
+        <PageTitle />
         <ActivityIndicator color="#0D9488" />
       </View>
     );

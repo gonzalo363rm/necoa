@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { signInWithGoogle } from '@/src/lib/auth';
 import { consumePendingInvite, OwnerHandoffRequiredError } from '@/src/lib/invites';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
@@ -42,6 +43,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-brand-50">
+      <PageTitle title="Iniciar sesión" />
       <View className="flex-1 justify-between px-6 pb-10 pt-16">
         <View>
           <Text className="text-5xl font-bold text-brand-800">Necoa</Text>

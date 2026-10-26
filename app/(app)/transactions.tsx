@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } fr
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { PeriodSelector } from '@/src/components/PeriodSelector';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
@@ -48,6 +49,7 @@ export default function TransactionsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Movimientos" />
       <WebShell>
       <View className="px-5 pt-4">
         <Text className="text-2xl font-bold text-ink-900">Movimientos</Text>

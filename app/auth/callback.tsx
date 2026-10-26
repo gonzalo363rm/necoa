@@ -3,6 +3,7 @@ import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { createSessionFromUrl } from '@/src/lib/auth';
 
 /** Completa el OAuth (web o deep link nativo). */
@@ -39,6 +40,7 @@ export default function AuthCallbackScreen() {
 
   return (
     <View className="flex-1 items-center justify-center bg-ink-50 px-6">
+      <PageTitle title="Iniciando sesión" />
       <ActivityIndicator color="#0D9488" />
       <Text className="mt-4 text-center text-sm text-ink-700">{message}</Text>
     </View>

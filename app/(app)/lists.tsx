@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListCategoryModal, type ListCategoryModalMode } from '@/src/components/ListCategoryModal';
+import { PageTitle } from '@/src/components/PageTitle';
 import { ListItemEditModal } from '@/src/components/ListItemEditModal';
 import { CategoryItemsList } from '@/src/components/lists/CategoryItemsList';
 import { ListsScroll } from '@/src/components/lists/ListsScroll';
@@ -216,6 +217,7 @@ export default function ListsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Listas" />
       <WebShell>
         <ListsScroll
           refreshControl={

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { FamilyInfoModal } from '@/src/components/FamilyInfoModal';
+import { PageTitle } from '@/src/components/PageTitle';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { WebShell } from '@/src/components/WebShell';
 import { useAppRefresh } from '@/src/hooks/useAppRefresh';
@@ -169,6 +170,7 @@ export default function FamilyScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Familia" />
       <WebShell>
       <ScrollView
         contentContainerClassName="gap-4 px-5 pb-28 pt-4"

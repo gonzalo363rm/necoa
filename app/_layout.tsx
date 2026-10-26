@@ -6,6 +6,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -34,10 +35,17 @@ export default function RootLayout() {
     if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
-  if (!loaded) return null;
+  const defaultTitle = (
+    <Head>
+      <title>Necoa</title>
+    </Head>
+  );
+
+  if (!loaded) return defaultTitle;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+    {defaultTitle}
     <AppProviders>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F8FAFC' } }}>

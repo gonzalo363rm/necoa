@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { useAuth } from '@/src/hooks/useAuth';
 import {
   acceptFamilyInvite,
@@ -109,6 +110,7 @@ export default function InviteScreen() {
     const ready = Boolean(selectedOwnerId) && !submitting;
     return (
       <SafeAreaView className="flex-1 bg-ink-50">
+        <PageTitle title="Invitación" />
         <ScrollView contentContainerClassName="px-6 pb-10 pt-10">
           <Text className="text-2xl font-bold text-ink-900">Antes de unirte</Text>
           <Text className="mt-2 text-sm leading-5 text-ink-500">
@@ -163,6 +165,7 @@ export default function InviteScreen() {
 
   return (
     <View className="flex-1 items-center justify-center bg-ink-50 px-6">
+      <PageTitle title="Invitación" />
       <ActivityIndicator color="#0D9488" />
       <Text className="mt-4 text-center text-sm text-ink-700">{message}</Text>
     </View>

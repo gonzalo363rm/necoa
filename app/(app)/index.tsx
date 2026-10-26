@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GoalProgressBar } from '@/src/components/GoalProgressBar';
+import { PageTitle } from '@/src/components/PageTitle';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
@@ -75,6 +76,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Resumen" />
       <WebShell>
         <ScrollView
           contentContainerClassName="px-5 pb-28 pt-4"

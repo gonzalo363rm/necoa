@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { TAG_ICON_OPTIONS, TagGlyph } from '@/src/components/TagGlyph';
 import { WebShell } from '@/src/components/WebShell';
 import { useAppRefresh } from '@/src/hooks/useAppRefresh';
@@ -80,6 +81,7 @@ export default function TagsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Etiquetas" />
       <WebShell>
         <View className="flex-row items-center justify-between px-5 pt-4">
           <Text className="text-2xl font-bold text-ink-900">Etiquetas</Text>

@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PageTitle } from '@/src/components/PageTitle';
 import { PeriodSelector } from '@/src/components/PeriodSelector';
 import { PieBreakdownCard } from '@/src/components/charts/PieBreakdownCard';
 import { TrendChartCard } from '@/src/components/charts/TrendChartCard';
@@ -176,6 +177,7 @@ export default function ChartsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-ink-50" edges={['top']}>
+      <PageTitle title="Gráficos" />
       <WebShell>
         <ScrollView
           contentContainerClassName="px-5 pb-28 pt-4"
