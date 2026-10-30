@@ -1,6 +1,6 @@
 import { addMonths, format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Tags, UserPlus, Users } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Tags, UserPlus, Users } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -24,8 +24,10 @@ import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useBudgetGoals, useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFamilyData';
 import { computeMonthBreakdown, formatMoney, monthRange, resolveCategory } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
-import { useFiltersStore } from '@/src/stores';
+import { useFiltersStore, useSessionStore } from '@/src/stores';
 import type { Transaction } from '@/src/types/domain';
+
+const HIDDEN_MONEY = '$ ••••';
 
 type GoalKind = 'living' | 'comfort' | 'savings';
 
@@ -51,6 +53,8 @@ export default function HomeScreen() {
   const month = useFiltersStore((s) => s.month);
   const memberIds = useFiltersStore((s) => s.memberIds);
   const setMonth = useFiltersStore((s) => s.setMonth);
+  const hideAmounts = useSessionStore((s) => s.hideAmounts);
+  const toggleHideAmounts = useSessionStore((s) => s.toggleHideAmounts);
   const { familyId, families } = useFamilyContext();
   const { from, to } = monthRange(month);
   const goalsQuery = useBudgetGoals(familyId);
@@ -62,6 +66,7 @@ export default function HomeScreen() {
   const breakdown = computeMonthBreakdown(txQuery.data ?? [], goalsQuery.data);
   const monthDate = parse(`${month}-01`, 'yyyy-MM-dd', new Date());
   const monthLabel = format(monthDate, 'MMMM yyyy', { locale: es });
+  const money = (amount: number) => (hideAmounts ? HIDDEN_MONEY : formatMoney(amount));
 
   const [goalDetail, setGoalDetail] = useState<GoalKind | null>(null);
 
@@ -151,19 +156,32 @@ export default function HomeScreen() {
             <ActivityIndicator className="mt-10" color="#0D9488" />
           ) : (
             <View className="mt-5 gap-4">
-              <SurfaceCard title="Resumen del mes" subtitle="Sobre ingresos del período">
+              <SurfaceCard
+                title="Resumen del mes"
+                subtitle="Sobre ingresos del período"
+                right={
+                  <Pressable
+                    onPress={toggleHideAmounts}
+                    hitSlop={8}
+                    accessibilityLabel={hideAmounts ? 'Mostrar montos' : 'Ocultar montos'}
+                    className="h-9 w-9 items-center justify-center rounded-full bg-ink-50 active:opacity-80"
+                  >
+                    {hideAmounts ? <EyeOff color="#64748B" size={18} /> : <Eye color="#0F766E" size={18} />}
+                  </Pressable>
+                }
+              >
                 <View className="mt-2 flex-row justify-between">
                   <View>
                     <Text className="text-xs text-ink-500">Ingresos</Text>
-                    <Text className="text-lg font-bold text-savings">{formatMoney(breakdown.incomeTotal)}</Text>
+                    <Text className="text-lg font-bold text-savings">{money(breakdown.incomeTotal)}</Text>
                   </View>
                   <View>
                     <Text className="text-xs text-ink-500">Gastos</Text>
-                    <Text className="text-lg font-bold text-danger">{formatMoney(breakdown.expenseTotal)}</Text>
+                    <Text className="text-lg font-bold text-danger">{money(breakdown.expenseTotal)}</Text>
                   </View>
                   <View>
                     <Text className="text-xs text-ink-500">Ahorro</Text>
-                    <Text className="text-lg font-bold text-brand-700">{formatMoney(breakdown.savingsAmount)}</Text>
+                    <Text className="text-lg font-bold text-brand-700">{money(breakdown.savingsAmount)}</Text>
                   </View>
                 </View>
               </SurfaceCard>
@@ -174,7 +192,7 @@ export default function HomeScreen() {
                   actualPct={breakdown.livingPct}
                   targetPct={breakdown.goals?.living_pct ?? 40}
                   colorClass="bg-living"
-                  amountLabel={formatMoney(breakdown.livingTotal)}
+                  amountLabel={money(breakdown.livingTotal)}
                   onPress={() => setGoalDetail('living')}
                 />
                 <GoalProgressBar
@@ -182,7 +200,7 @@ export default function HomeScreen() {
                   actualPct={breakdown.comfortPct}
                   targetPct={breakdown.goals?.comfort_pct ?? 30}
                   colorClass="bg-comfort"
-                  amountLabel={formatMoney(breakdown.comfortTotal)}
+                  amountLabel={money(breakdown.comfortTotal)}
                   onPress={() => setGoalDetail('comfort')}
                 />
                 <GoalProgressBar
@@ -191,7 +209,7 @@ export default function HomeScreen() {
                   targetPct={breakdown.goals?.savings_pct ?? 30}
                   colorClass="bg-savings"
                   kind="savings"
-                  amountLabel={formatMoney(breakdown.savingsAmount)}
+                  amountLabel={money(breakdown.savingsAmount)}
                   onPress={() => setGoalDetail('savings')}
                 />
               </SurfaceCard>

@@ -60,13 +60,17 @@ export const useFiltersStore = create<FiltersState>()((set, get) => ({
 type SessionUiState = {
   activeFamilyId: string | null;
   setActiveFamilyId: (id: string | null) => void;
+  hideAmounts: boolean;
+  toggleHideAmounts: () => void;
 };
 
 export const useSessionStore = create<SessionUiState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       activeFamilyId: null,
       setActiveFamilyId: (id) => set({ activeFamilyId: id }),
+      hideAmounts: false,
+      toggleHideAmounts: () => set({ hideAmounts: !get().hideAmounts }),
     }),
     {
       name: 'necoa-session',

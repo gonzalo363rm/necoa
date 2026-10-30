@@ -12,7 +12,9 @@ import { useAppRefresh } from '@/src/hooks/useAppRefresh';
 import { useFamilyContext, useMembers, useTransactions } from '@/src/hooks/useFamilyData';
 import { formatMoney, monthRange } from '@/src/lib/finance';
 import { formatDisplayDate } from '@/src/lib/tags';
-import { useFiltersStore } from '@/src/stores';
+import { useFiltersStore, useSessionStore } from '@/src/stores';
+
+const HIDDEN_MONEY = '$ ••••';
 
 export default function TransactionsScreen() {
   const month = useFiltersStore((s) => s.month);
@@ -25,6 +27,7 @@ export default function TransactionsScreen() {
   const clearMembers = useFiltersStore((s) => s.clearMembers);
   const setTypeFilter = useFiltersStore((s) => s.setTypeFilter);
   const setDateRange = useFiltersStore((s) => s.setDateRange);
+  const hideAmounts = useSessionStore((s) => s.hideAmounts);
 
   const rangeActive = Boolean(dateFrom && dateTo);
   const { familyId } = useFamilyContext();
@@ -111,16 +114,20 @@ export default function TransactionsScreen() {
         <View className="mt-3 flex-row justify-between rounded-2xl border border-ink-100 bg-white px-4 py-3">
           <View>
             <Text className="text-xs text-ink-500">Ingresos</Text>
-            <Text className="font-bold text-savings">{formatMoney(summary.income)}</Text>
+            <Text className="font-bold text-savings">
+              {hideAmounts ? HIDDEN_MONEY : formatMoney(summary.income)}
+            </Text>
           </View>
           <View>
             <Text className="text-xs text-ink-500">Gastos</Text>
-            <Text className="font-bold text-danger">{formatMoney(summary.expense)}</Text>
+            <Text className="font-bold text-danger">
+              {hideAmounts ? HIDDEN_MONEY : formatMoney(summary.expense)}
+            </Text>
           </View>
           <View>
             <Text className="text-xs text-ink-500">Total</Text>
             <Text className={`font-bold ${summary.total >= 0 ? 'text-brand-700' : 'text-danger'}`}>
-              {formatMoney(summary.total)}
+              {hideAmounts ? HIDDEN_MONEY : formatMoney(summary.total)}
             </Text>
           </View>
         </View>
